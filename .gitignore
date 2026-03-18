@@ -9,6 +9,9 @@ yarn-error.log*
 .env.local
 .env.*.local
 server/.env
+server/*.db
+server/*.db-shm
+server/*.db-wal
 
 # ── Build outputs ─────────────────────────────────────────
 client/dist/

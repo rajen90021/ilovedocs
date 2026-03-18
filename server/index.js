@@ -59,6 +59,18 @@ app.use('/api/image', imageRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/tools', toolsRoutes);
 
+// ── Serve Production Client ─────────────────────────────────
+// Serve the built static files
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// SPA Catch-all: If it's not an API call, serve the client index.html
+app.get('*', (req, res) => {
+  // If it's an API route that somehow hit here, send 404
+  if (req.url.startsWith('/api')) return res.status(404).json({ error: 'API route not found' });
+  
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
