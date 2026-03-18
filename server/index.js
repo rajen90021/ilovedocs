@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
 const cron = require('node-cron');
 const { cleanExpiredFiles } = require('./services/cleanupService');
 const { initDB } = require('./services/database');
@@ -64,11 +65,21 @@ app.use('/api/tools', toolsRoutes);
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // SPA Catch-all: If it's not an API call, serve the client index.html
-app.get('/(.*)', (req, res) => {
+app.get('/:path*', (req, res) => {
   // If it's an API route that somehow hit here, send 404
   if (req.url.startsWith('/api')) return res.status(404).json({ error: 'API route not found' });
   
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  const indexPath = path.join(__dirname, '../client/dist/index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    // In local development, you might not have run 'npm run build' yet.
+    // Instead of crashing, we provide a status or 404.
+    res.status(404).json({ 
+      info: 'ILoveDocs API is running.',
+      error: 'Frontend build not found at client/dist. For local testing, use the Vite dev server at http://localhost:5173' 
+    });
+  }
 });
 
 // Health check
