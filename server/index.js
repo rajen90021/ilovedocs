@@ -19,6 +19,9 @@ const toolsRoutes = require('./routes/tools');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy for rate limiting on hosting platforms like Render
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
