@@ -7,7 +7,7 @@ import { Helmet } from 'react-helmet-async';
 
 const SITE_NAME      = 'ILoveDocs';
 const SITE_URL       = 'https://ilovedocs.in';
-const DEFAULT_IMG    = `${SITE_URL}/og-default.png`;
+const DEFAULT_IMG    = `${SITE_URL}/logo.png`;
 const TWITTER_HANDLE = '@ilovedocs';
 const BASE_KEYWORDS  = 'PDF tools, document converter, free PDF, online PDF editor, PDF merge, PDF compress';
 
