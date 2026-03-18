@@ -64,7 +64,7 @@ app.use('/api/tools', toolsRoutes);
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // SPA Catch-all: If it's not an API call, serve the client index.html
-app.get('*', (req, res) => {
+app.get('/(.*)', (req, res) => {
   // If it's an API route that somehow hit here, send 404
   if (req.url.startsWith('/api')) return res.status(404).json({ error: 'API route not found' });
   
