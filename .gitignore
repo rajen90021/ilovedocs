@@ -1,0 +1,32 @@
+# ── Node ──────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Environment / Secrets ─────────────────────────────────
+.env
+.env.local
+.env.*.local
+server/.env
+
+# ── Build outputs ─────────────────────────────────────────
+client/dist/
+client/.vite/
+
+# ── Uploads (user files — never commit) ───────────────────
+server/uploads/
+
+# ── OS / Editor ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── Temp / test files ─────────────────────────────────────
+server/test.pdf
+server/valid.pdf
+server/multi.pdf
+server/test.zip
+server/test_out/
+server/test_out.docx
