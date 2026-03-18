@@ -22,6 +22,7 @@ export default function ToolCard({ tool, delay = 0 }) {
   return (
     <Link
       to={`/tools/${tool.id}`}
+      title={`Use ${tool.name} tool`}
       className="tool-card animate-fade-up"
       style={{ animationDelay: `${delay}ms`, '--tool-color': tool.color }}
     >

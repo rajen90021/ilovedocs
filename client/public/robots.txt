@@ -1,15 +1,3 @@
-# robots.txt for ILoveDocs
-# https://ilovedocs.com
-
 User-agent: *
 Allow: /
-
-# Block non-content paths
-Disallow: /api/
-Disallow: /uploads/
-Disallow: /dashboard
-Disallow: /login
-Disallow: /register
-
-# Point to sitemap
 Sitemap: https://ilovedocs.in/sitemap.xml

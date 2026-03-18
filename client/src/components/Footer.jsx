@@ -7,6 +7,8 @@ const footerTools = [
   { name: 'Split PDF', path: '/tools/split-pdf' },
   { name: 'Compress PDF', path: '/tools/compress-pdf' },
   { name: 'Rotate PDF', path: '/tools/rotate-pdf' },
+  { name: 'PDF to Word', path: '/tools/pdf-to-word' },
+  { name: 'JPG to PDF', path: '/tools/jpg-to-pdf' },
   { name: 'Compress Image', path: '/tools/compress-image' },
   { name: 'Convert Image', path: '/tools/convert-image' },
 ];

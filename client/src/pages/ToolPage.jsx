@@ -6,7 +6,7 @@ import * as Icons from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { API_URL } from '../context/AuthContext';
 import SEOHead from '../components/SEOHead';
-import { TOOL_SEO, buildToolJsonLd, buildToolFaqJsonLd } from '../data/toolSEO';
+import { TOOL_SEO, buildToolJsonLd, buildToolFaqJsonLd, buildHowToJsonLd, buildBreadcrumbJsonLd } from '../data/toolSEO';
 import './ToolPage.css';
 
 
@@ -167,6 +167,7 @@ export default function ToolPage() {
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null); // { url, filename, originalSize, newSize, reduction }
   const [error, setError] = useState(null);
+  const [allTools, setAllTools] = useState([]);
 
   const config = TOOL_CONFIG[toolId] || { options: null, multi: false, acceptedInfo: 'Supported files' };
 
@@ -179,10 +180,11 @@ export default function ToolPage() {
 
     axios.get(`${API_URL}/api/tools`)
       .then(res => {
-        const found = res.data.tools?.find(t => t.id === toolId);
+        const tools = res.data.tools || [];
+        setAllTools(tools);
+        const found = tools.find(t => t.id === toolId);
         if (found) {
           setTool(found);
-          // title is handled by SEOHead now
         } else {
           navigate('/tools');
         }
@@ -362,6 +364,11 @@ export default function ToolPage() {
   const seoData = tool ? TOOL_SEO[tool.id] : null;
   const IconComponent = tool ? (Icons[toPascalCase(tool.icon)] || Icons.FileText) : Icons.FileText;
 
+  // Find 4 related tools from the same category
+  const relatedTools = allTools
+    .filter(t => t.id !== toolId && t.category === tool?.category)
+    .slice(0, 4);
+
   if (!tool) {
     return (
       <div className="tool-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
@@ -373,7 +380,9 @@ export default function ToolPage() {
   const jsonLd = [
     buildToolJsonLd(tool, seoData),
     buildToolFaqJsonLd(tool),
-  ];
+    buildHowToJsonLd(tool, seoData),
+    buildBreadcrumbJsonLd(tool),
+  ].filter(Boolean);
 
   return (
     <div className="tool-page">
@@ -390,6 +399,14 @@ export default function ToolPage() {
       <div className="tool-page__header" style={{ '--tool-color': tool.color }}>
         <div className="tool-page__header-bg" />
         <div className="container-sm">
+          <nav className="tool-page__breadcrumbs" aria-label="Breadcrumb">
+            <Link to="/">Home</Link>
+            <Icons.ChevronRight size={12} />
+            <Link to="/tools">Tools</Link>
+            <Icons.ChevronRight size={12} />
+            <span className="active">{tool.name}</span>
+          </nav>
+
           <Link to="/tools" className="tool-page__back">
             <Icons.ArrowLeft size={16} /> All Tools
           </Link>
@@ -633,6 +650,20 @@ export default function ToolPage() {
               </ul>
             </div>
 
+            {seoData?.howTo && (
+              <div className="tool-seo-howto">
+                <h3>How to use {tool.name}</h3>
+                <ol className="howto-list">
+                  {seoData.howTo.map((step, idx) => (
+                    <li key={idx} id={`step-${idx + 1}`} className="howto-step">
+                      <div className="howto-step__num">{idx + 1}</div>
+                      <p>{step}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
             <div className="tool-seo-faq">
               <h3>Frequently Asked Questions</h3>
               <div className="faq-item">
@@ -655,6 +686,31 @@ export default function ToolPage() {
           </div>
         </div>
       </section>
+
+      {/* Related Tools */}
+      {relatedTools.length > 0 && (
+        <section className="related-tools-section">
+          <div className="container-sm">
+            <h2 className="related-tools-title">Related {tool.category.toUpperCase()} Tools</h2>
+            <div className="related-tools-grid">
+              {relatedTools.map(rt => {
+                const RTIcon = Icons[toPascalCase(rt.icon)] || Icons.FileText;
+                return (
+                  <Link key={rt.id} to={`/tools/${rt.id}`} className="related-tool-card">
+                    <div className="related-tool-card__icon" style={{ color: rt.color }}>
+                      <RTIcon size={20} />
+                    </div>
+                    <div className="related-tool-card__info">
+                      <h3>{rt.name}</h3>
+                      <p>{rt.description}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

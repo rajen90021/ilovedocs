@@ -162,6 +162,37 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* How It Works */}
+      <section className="how-it-works">
+        <div className="container">
+          <div className="section-header" style={{ justifyContent: 'center' }}>
+            <div className="text-center">
+              <h2 className="section-title">How It <span className="text-gradient">Works</span></h2>
+              <p className="section-subtitle">Get your tasks done in 3 simple steps</p>
+            </div>
+          </div>
+          <div className="how-it-works__steps">
+            <div className="work-step">
+              <div className="work-step__icon">1</div>
+              <h3>Choose a Tool</h3>
+              <p>Select from over 20+ PDF, image, and document tools available on our platform.</p>
+            </div>
+            <div className="work-step__divider"></div>
+            <div className="work-step">
+              <div className="work-step__icon">2</div>
+              <h3>Upload & Process</h3>
+              <p>Drag and drop your files. Our fast server-side engine will handle the heavy lifting.</p>
+            </div>
+            <div className="work-step__divider"></div>
+            <div className="work-step">
+              <div className="work-step__icon">3</div>
+              <h3>Download Result</h3>
+              <p>Get your processed files instantly. They are auto-deleted after 1 hour for your privacy.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section className="features-section">
         <div className="container">
