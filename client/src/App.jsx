@@ -4,6 +4,7 @@ import { ToastProvider } from './context/ToastContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ToastContainer from './components/ToastContainer';
+import ScrollToTop from './components/ScrollToTop';
 import HomePage from './pages/HomePage';
 import ToolsPage from './pages/ToolsPage';
 import ToolPage from './pages/ToolPage';
@@ -18,6 +19,7 @@ function App() {
     <AuthProvider>
       <ToastProvider>
         <Router>
+          <ScrollToTop />
           <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Navbar />
             <main style={{ flex: 1 }}>
