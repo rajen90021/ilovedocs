@@ -39,23 +39,35 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <!-- Base JSON-LD WebSite schema (page-level schemas injected by Helmet) -->
+    <!-- Base JSON-LD WebSite & Organization schema (page-level schemas injected by Helmet) -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "ILoveDocs",
-      "url": "https://ilovedocs.in",
-      "description": "Free online PDF and document tools — merge, split, compress, rotate, watermark, convert and edit files.",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": "https://ilovedocs.in/tools?q={search_term_string}"
-        },
-        "query-input": "required name=search_term_string"
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ILoveDocs",
+        "url": "https://ilovedocs.in",
+        "description": "Free online PDF and document tools — merge, split, compress, rotate, watermark, convert and edit files.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://ilovedocs.in/tools?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "ILoveDocs",
+        "url": "https://ilovedocs.in",
+        "logo": "https://ilovedocs.in/logo.png",
+        "sameAs": [
+          "https://twitter.com/ilovedocs"
+        ]
       }
-    }
+    ]
     </script>
   </head>
   <body>
