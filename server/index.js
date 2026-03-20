@@ -63,6 +63,24 @@ app.use('/api/image', imageRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/tools', toolsRoutes);
 
+// Explicitly serve robots.txt and sitemap.xml
+// This ensures they are served correctly even if the static build folder is missing or if the catch-all interferes
+app.get('/robots.txt', (req, res) => {
+  const localPath = path.join(__dirname, '../client/public/robots.txt');
+  const distPath = path.join(__dirname, '../client/dist/robots.txt');
+  if (fs.existsSync(distPath)) return res.sendFile(distPath);
+  if (fs.existsSync(localPath)) return res.sendFile(localPath);
+  res.status(404).send('robots.txt not found');
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const localPath = path.join(__dirname, '../client/public/sitemap.xml');
+  const distPath = path.join(__dirname, '../client/dist/sitemap.xml');
+  if (fs.existsSync(distPath)) return res.sendFile(distPath);
+  if (fs.existsSync(localPath)) return res.sendFile(localPath);
+  res.status(404).send('sitemap.xml not found');
+});
+
 // ── Serve Production Client ─────────────────────────────────
 // Serve the built static files
 app.use(express.static(path.join(__dirname, '../client/dist')));
