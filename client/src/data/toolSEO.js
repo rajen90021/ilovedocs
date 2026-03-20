@@ -13,41 +13,60 @@
 export const TOOL_SEO = {
   'merge-pdf': {
     title: 'Merge PDF — Combine Multiple PDF Files Online Free',
-    description:
-      'Merge multiple PDF files into a single document in seconds. Free, fast, and secure PDF merger — no signup required. Up to 20 PDFs, 50 MB each.',
-    keywords:
-      'merge PDF, combine PDF, join PDF files, PDF merger online, combine multiple PDFs, merge PDF free',
+    h1: 'Merge PDF Files Online Free',
+    h2: 'The Best Free PDF Merger Online',
+    description: 'Merge multiple PDF files into a single document in seconds. Free, fast, and secure PDF merger — no signup required. Up to 20 PDFs, 50 MB each.',
+    longDescription: 'Our free online PDF merger allows you to seamlessly combine multiple PDF documents into a single, organized file. Whether you are compiling reports, merging invoices, or organizing study materials, ILoveDocs makes the process lightning fast. Drag and drop your files, arrange them in the exact order you need, and hit merge. The entire process happens securely in the cloud, ensuring your original formatting is perfectly preserved.',
+    keywords: 'merge PDF, combine PDF, join PDF files, PDF merger online, combine multiple PDFs, merge PDF free',
     howTo: [
       'Click the "Upload Files" button or drag and drop your PDF files into the upload area.',
       'Optionally, rearrange the files into the order you want them to appear in the merged document.',
       'Click the "Merge PDF" button to begin the combination process.',
       'Once finished, click the "Download" button to save your new merged PDF file.'
+    ],
+    faqs: [
+      { q: "Is it safe to merge PDFs online?", a: "Yes. All file transfers are secured with advanced TLS encryption. Your merged PDFs are automatically and permanently deleted from our servers 1 hour after processing." },
+      { q: "Will merging PDFs drop the quality?", a: "No, our PDF merger combines your documents without altering the original quality, resolution, or text formatting." },
+      { q: "Can I rearrange pages before merging?", a: "Currently, you can upload files and drag them into your preferred order before merging them together." },
+      { q: "Do I need to download software to merge PDF files?", a: "No installation is required. Our PDF merge tool operates entirely online in your web browser." }
     ]
   },
   'split-pdf': {
     title: 'Split PDF — Extract Pages from PDF Online Free',
-    description:
-      'Split a PDF into individual pages or extract a specific page range instantly. Free online PDF splitter with no email required.',
-    keywords:
-      'split PDF, extract PDF pages, PDF page extractor, divide PDF, split PDF free online',
+    h1: 'Split PDF & Extract Pages Free',
+    h2: 'The Fastest Way to Split PDF Files Online',
+    description: 'Split a PDF into individual pages or extract a specific page range instantly. Free online PDF splitter with no email required.',
+    longDescription: 'Extract exactly what you need from large documents. Our split PDF tool lets you separate a massive document into individual pages or pull out specific critical pages in seconds. It is completely free, does not require an account, and ensures your newly separated pages retain their original high quality.',
+    keywords: 'split PDF, extract PDF pages, PDF page extractor, divide PDF, split PDF free online',
     howTo: [
       'Select and upload the PDF document you want to split.',
       'Enter the specific page numbers or ranges you wish to extract (e.g., 1-5, 8, 10).',
       'Click the "Split PDF" button to extract your chosen pages.',
       'Download the result, which will be a new PDF or a ZIP archive if multiple files were created.'
+    ],
+    faqs: [
+      { q: "How do I split a PDF file into multiple pages?", a: "Upload your document, leave the range input blank to split every page individually, and hit split. You will receive a ZIP file containing every page as a separate PDF." },
+      { q: "Is the PDF splitting process secure?", a: "Absolutely. Files are transferred securely and are hard-deleted automatically after 1 hour." },
+      { q: "Can I extract just one page from a PDF?", a: "Yes. Simply type the number of the page you want to extract into the input field." }
     ]
   },
   'compress-pdf': {
     title: 'Compress PDF — Reduce PDF File Size Online Free',
-    description:
-      'Reduce PDF file size without losing quality. Our free PDF compressor shrinks large files for email or upload — instant, secure, no install.',
-    keywords:
-      'compress PDF, reduce PDF size, PDF compressor, shrink PDF, make PDF smaller, PDF optimizer',
+    h1: 'Compress PDF Files Online Free',
+    h2: 'The Smartest PDF Compressor Tool',
+    description: 'Reduce PDF file size without losing quality. Our free PDF compressor shrinks large files for email or upload — instant, secure, no install.',
+    longDescription: 'Running into frustrating file size limits on email or web forms? Our online PDF Compressor is the fastest way to shrink large PDFs into easily shareable files. Using advanced optimization algorithms, we ensure your document gets substantially smaller without sacrificing readability or graphic quality. Best of all, it is entirely free and happens instantly in your web browser.',
+    keywords: 'compress PDF, reduce PDF size, PDF compressor, shrink PDF, make PDF smaller, PDF optimizer',
     howTo: [
       'Upload the large PDF file that you need to compress.',
       'Our tool will automatically apply the best compression ratio while preserving quality.',
       'Click the "Compress PDF" button to start the optimization.',
       'Download your optimized, smaller PDF file.'
+    ],
+    faqs: [
+      { q: "Will compressing a PDF make it blurry?", a: "No, our smart compressor optimizes internal structures and image metadata rather than destroying pixel quality. Your text will remain perfectly crisp." },
+      { q: "What is the maximum file size I can compress?", a: "You can compress PDF files up to 50 MB in size." },
+      { q: "Is the compression tool free to use?", a: "Yes, our PDF compressor is 100% free with no hidden limits or watermarks." }
     ]
   },
   'rotate-pdf': {
@@ -130,28 +149,40 @@ export const TOOL_SEO = {
   },
   'jpg-to-pdf': {
     title: 'JPG to PDF — Convert Images to PDF Online Free',
-    description:
-      'Convert JPG, PNG, WebP, and BMP images to PDF documents in one click. Combine multiple images into a single high-quality PDF file for free.',
-    keywords:
-      'JPG to PDF, image to PDF, PNG to PDF, convert photo to PDF, picture to PDF, free image PDF converter',
+    h1: 'Convert JPG to PDF Online',
+    h2: 'The Best Free Image to PDF Converter',
+    description: 'Convert JPG, PNG, WebP, and BMP images to PDF documents in one click. Combine multiple images into a single high-quality PDF file for free.',
+    longDescription: 'Turn your photos, scanned documents, and image files into professional PDF documents instantly. Whether you are submitting expense receipts, creating a photo album, or compiling scanned pages, our JPG to PDF converter handles it effortlessly. You can upload multiple images at once and combine them into a single continuous PDF document for easy sharing.',
+    keywords: 'JPG to PDF, image to PDF, PNG to PDF, convert photo to PDF, picture to PDF, free image PDF converter',
     howTo: [
       'Upload one or more images (JPG, PNG, WebP, BMP).',
       'Our tool will automatically prepare them for a standard PDF layout.',
       'Click "JPG to PDF" to generate the document.',
       'Download your high-quality PDF file.'
+    ],
+    faqs: [
+      { q: "Which image formats are supported?", a: "Our converter fully supports JPG, JPEG, PNG, WebP, and BMP image formats." },
+      { q: "Can I convert multiple images into one PDF?", a: "Yes! You can upload up to 20 images at a time and they will all be perfectly combined into a single, multi-page PDF." },
+      { q: "Will the images lose quality when converted to PDF?", a: "No. The images are embedded directly into the PDF document keeping their original High-Definition resolution intact." }
     ]
   },
   'pdf-to-word': {
     title: 'PDF to Word — Convert PDF to DOCX Online Free',
-    description:
-      'Convert PDF documents to editable Word DOCX files online for free. Preserve text and formatting — no email or signup required.',
-    keywords:
-      'PDF to Word, convert PDF to DOCX, PDF to Word free, PDF to editable Word, PDF converter, PDF Word online',
+    h1: 'Convert PDF to Word Online',
+    h2: 'Fast & Accurate PDF to DOCX Converter',
+    description: 'Convert PDF documents to editable Word DOCX files online for free. Preserve text and formatting — no email or signup required.',
+    longDescription: 'Need to edit a PDF but do not have the original file? Our fast PDF to Word converter accurately extracts the text, styling, and formatting from your PDF and transforms it into an editable Microsoft Word document (.docx). Perfect for updating old documents, tweaking resumes, or extracting text without having to manually retype everything.',
+    keywords: 'PDF to Word, convert PDF to DOCX, PDF to Word free, PDF to editable Word, PDF converter, PDF Word online',
     howTo: [
       'Upload the PDF file you want to convert into Word format.',
       'The tool extracts the text and formatting into a DOCX structure.',
       'Click the "PDF to Word" button to start the conversion.',
       'Download your editable Microsoft Word file.'
+    ],
+    faqs: [
+      { q: "Will the Word document look like my original PDF?", a: "Our conversion engine works hard to map PDF layouts, tables, styles, and text into Word format, preserving the visual layout as accurately as possible." },
+      { q: "Is the PDF to Word converter free?", a: "Yes, you can convert PDFs to editable Word documents completely for free with no hidden fees." },
+      { q: "Is it safe to convert sensitive documents?", a: "Absolutely. We encrypt all traffic and permanently wipe uploaded files from our databases just 1 hour after conversion." }
     ]
   },
   'pdf-to-jpg': {
@@ -393,44 +424,57 @@ export function buildWebsiteJsonLd() {
 /**
  * Build a FAQ JSON-LD block for a tool page.
  */
-export function buildToolFaqJsonLd(tool) {
+export function buildToolFaqJsonLd(tool, seoData) {
+  const genericFaqs = [
+    {
+      '@type': 'Question',
+      name: `Is ${tool.name} free?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `Yes. ${tool.name} on ILoveDocs is completely free. No sign-up, no payment, no watermark.`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `How long are my files kept after using ${tool.name}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text:
+          'All uploaded and output files are automatically and permanently deleted from our servers after 1 hour.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `What is the maximum file size for ${tool.name}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'The maximum accepted file size is 50 MB per file.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `Do I need to install any software for ${tool.name}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `No, ${tool.name} works directly in your web browser. No plugins, desktop software, or mobile apps are required.`,
+      },
+    },
+  ];
+
+  const faqsToUse = seoData?.faqs
+    ? seoData.faqs.map(f => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: f.a,
+        },
+      }))
+    : genericFaqs;
+
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: `Is ${tool.name} free?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Yes. ${tool.name} on ILoveDocs is completely free. No sign-up, no payment, no watermark.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `How long are my files kept after using ${tool.name}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text:
-            'All uploaded and output files are automatically and permanently deleted from our servers after 1 hour.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `What is the maximum file size for ${tool.name}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'The maximum accepted file size is 50 MB per file.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Do I need to install any software for ${tool.name}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `No, ${tool.name} works directly in your web browser. No plugins, desktop software, or mobile apps are required.`,
-        },
-      },
-    ],
+    mainEntity: faqsToUse,
   };
 }

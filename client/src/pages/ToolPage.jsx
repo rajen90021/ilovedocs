@@ -379,7 +379,7 @@ export default function ToolPage() {
 
   const jsonLd = [
     buildToolJsonLd(tool, seoData),
-    buildToolFaqJsonLd(tool),
+    buildToolFaqJsonLd(tool, seoData),
     buildHowToJsonLd(tool, seoData),
     buildBreadcrumbJsonLd(tool),
   ].filter(Boolean);
@@ -415,7 +415,7 @@ export default function ToolPage() {
               <IconComponent size={32} />
             </div>
             <div>
-              <h1 className="tool-page__title">{tool.name}</h1>
+              <h1 className="tool-page__title">{seoData?.h1 ?? tool.name}</h1>
               <p className="tool-page__desc">{tool.description}</p>
             </div>
           </div>
@@ -633,9 +633,9 @@ export default function ToolPage() {
       <section className="tool-seo-section" aria-label="About this tool">
         <div className="container-sm">
           <div className="tool-seo-content">
-            <h2 className="tool-seo-content__title">About {tool.name}</h2>
+            <h2 className="tool-seo-content__title">{seoData?.h2 ?? `About ${tool.name}`}</h2>
             <p className="tool-seo-content__desc">
-              {seoData?.description ?? tool.description}
+              {seoData?.longDescription ?? seoData?.description ?? tool.description}
             </p>
 
             <div className="tool-seo-benefits">
@@ -666,22 +666,33 @@ export default function ToolPage() {
 
             <div className="tool-seo-faq">
               <h3>Frequently Asked Questions</h3>
-              <div className="faq-item">
-                <strong>Is {tool.name} free?</strong>
-                <p>Yes. {tool.name} on ILoveDocs is completely free with no sign-up, no watermark, and no usage limits.</p>
-              </div>
-              <div className="faq-item">
-                <strong>How long are my files stored?</strong>
-                <p>All uploaded and processed files are automatically and permanently deleted from our servers after 1 hour.</p>
-              </div>
-              <div className="faq-item">
-                <strong>What is the maximum file size?</strong>
-                <p>You can upload files up to 50 MB. For larger files, consider compressing them first.</p>
-              </div>
-              <div className="faq-item">
-                <strong>Is my data secure?</strong>
-                <p>Yes. All file transfers are encrypted using HTTPS. We do not share your files with any third parties.</p>
-              </div>
+              {seoData?.faqs ? (
+                seoData.faqs.map((faq, idx) => (
+                  <div key={idx} className="faq-item">
+                    <strong>{faq.q}</strong>
+                    <p>{faq.a}</p>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="faq-item">
+                    <strong>Is {tool.name} free?</strong>
+                    <p>Yes. {tool.name} on ILoveDocs is completely free with no sign-up, no watermark, and no usage limits.</p>
+                  </div>
+                  <div className="faq-item">
+                    <strong>How long are my files stored?</strong>
+                    <p>All uploaded and processed files are automatically and permanently deleted from our servers after 1 hour.</p>
+                  </div>
+                  <div className="faq-item">
+                    <strong>What is the maximum file size?</strong>
+                    <p>You can upload files up to 50 MB. For larger files, consider compressing them first.</p>
+                  </div>
+                  <div className="faq-item">
+                    <strong>Is my data secure?</strong>
+                    <p>Yes. All file transfers are encrypted using HTTPS. We do not share your files with any third parties.</p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
