@@ -19,8 +19,8 @@ const toolsRoutes = require('./routes/tools');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Trust proxy for rate limiting on hosting platforms like Render
-app.set('trust proxy', 1);
+// Trust proxy for rate limiting on hosting platforms like Render + Cloudflare
+app.set('trust proxy', true);
 
 // Security headers
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -33,7 +33,8 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use(limiter);
+// Apply rate limiter ONLY to API routes, not static files or SEO assets
+app.use('/api', limiter);
 
 // CORS
 app.use(cors({
