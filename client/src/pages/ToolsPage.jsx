@@ -4,6 +4,7 @@ import { Search, Filter } from 'lucide-react';
 import ToolCard from '../components/ToolCard';
 import SEOHead from '../components/SEOHead';
 import { API_URL } from '../context/AuthContext';
+import { buildToolsItemListJsonLd } from '../data/toolSEO';
 import './ToolsPage.css';
 
 const CATEGORIES = [
@@ -13,13 +14,16 @@ const CATEGORIES = [
   { id: 'convert', label: 'Convert' },
 ];
 
-const TOOLS_JSON_LD = {
-  '@context': 'https://schema.org',
-  '@type': 'CollectionPage',
-  name: 'All PDF & Document Tools — ILoveDocs',
-  description: 'Browse 20+ free online PDF and document tools including merge, split, compress, convert, and image editing tools.',
-  url: 'https://ilovedocs.com/tools',
-};
+const TOOLS_JSON_LD = (tools) => [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'All PDF & Document Tools | ILoveDocs',
+    description: 'Browse 20+ free online PDF and document conversion tools. Merge, compress, and edit files 100% free.',
+    url: 'https://ilovedocs.in/tools',
+  },
+  buildToolsItemListJsonLd(tools)
+];
 
 export default function ToolsPage() {
   const [tools, setTools] = useState([]);
@@ -51,7 +55,7 @@ export default function ToolsPage() {
         description="Browse 20+ free online PDF and document conversion tools. Merge PDF, compress PDF, convert PDF to Word, Excel, JPG, and more — no signup, no watermark."
         keywords="all PDF tools, free document tools, PDF converter online, merge PDF, compress PDF, PDF to Word, Word to PDF, PDF tools list"
         canonical="/tools"
-        jsonLd={TOOLS_JSON_LD}
+        jsonLd={TOOLS_JSON_LD(tools)}
       />
       <div className="tools-page__header">
         <div className="tools-page__bg-glow" />

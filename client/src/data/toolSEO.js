@@ -71,80 +71,101 @@ export const TOOL_SEO = {
   },
   'rotate-pdf': {
     title: 'Rotate PDF — Rotate PDF Pages Online Free',
-    description:
-      'Rotate individual or all pages in your PDF document online. Choose 90°, 180° or 270° rotation. Free and instant — no account needed.',
-    keywords:
-      'rotate PDF, rotate PDF pages, flip PDF pages, PDF rotation tool, rotate PDF online free',
+    h1: 'Rotate PDF Pages Online',
+    h2: 'Fix PDF Orientation in Seconds',
+    description: 'Rotate individual or all pages in your PDF document online. Choose 90°, 180° or 270° rotation. Free and instant — no account needed.',
+    longDescription: 'Scanned a document upside down or sideways? Our PDF rotation tool lets you easily fix the orientation of your PDF files. You can rotate specific pages or the entire document by 90, 180, or 270 degrees. It works entirely in your browser, keeping your data private and secure.',
+    keywords: 'rotate PDF, rotate PDF pages, flip PDF pages, PDF rotation tool, rotate PDF online free',
     howTo: [
       'Upload your PDF file to the rotation tool.',
       'Choose the rotation angle: 90° clockwise, 180°, or 270° clockwise.',
-      'Click the "Rotate PDF" button to apply the changes to all pages.',
-      'Download your rotated PDF document.'
+      'Click the "Rotate PDF" button to apply the changes.',
+      'Download your perfectly oriented PDF document.'
+    ],
+    faqs: [
+      { q: "Can I rotate only one page?", a: "Yes, our tool allows you to select specific pages for rotation or apply it to the whole document." },
+      { q: "Is it possible to rotate multiple PDFs at once?", a: "Currently, you can process one PDF at a time for precise rotation control." }
     ]
   },
   'watermark-pdf': {
     title: 'Add Watermark to PDF — Online Free Watermark Tool',
-    description:
-      'Add a custom text watermark to your PDF document online. Control opacity, color, and text. Protect your document in seconds — free.',
-    keywords:
-      'watermark PDF, add watermark to PDF, PDF watermark online, stamp PDF, text watermark PDF',
+    h1: 'Add Watermark to PDF Online',
+    h2: 'Protect Your Documents with Custom Watermarks',
+    description: 'Add a custom text watermark to your PDF document online. Control opacity, color, and text. Protect your document in seconds — free.',
+    longDescription: 'Protect your intellectual property or label your drafts with our customizable PDF watermark tool. Add any text, adjust transparency, and choose a color to make it your own. Whether it is "DRAFT", "CONFIDENTIAL", or your brand name, applying a watermark is simple and fast.',
+    keywords: 'watermark PDF, add watermark to PDF, PDF watermark online, stamp PDF, text watermark PDF',
     howTo: [
       'Select the PDF file you want to protect with a watermark.',
-      'Type your watermark text (e.g., "CONFIDENTIAL" or "DRAFT") in the options box.',
-      'Adjust settings like opacity and color to fit your needs.',
-      'Click "Watermark PDF" and download your stamped document.'
+      'Type your watermark text in the options area.',
+      'Adjust settings like opacity and color.',
+      'Click "Watermark PDF" and download your protected document.'
+    ],
+    faqs: [
+      { q: "Can I remove a watermark later?", a: "If the PDF is not flattened, some editors can remove it, but our tool permanently stamps the text into the PDF layers for security." },
+      { q: "Is there a limit to the length of the watermark text?", a: "We recommend keeping it under 50 characters for better visibility across the page." }
     ]
   },
   'protect-pdf': {
     title: 'Password Protect PDF — Encrypt PDF Online Free',
-    description:
-      'Add password protection and encryption to your PDF documents online. Secure sensitive files in seconds without software installation.',
-    keywords:
-      'protect PDF, password protect PDF, encrypt PDF, secure PDF, lock PDF file, PDF password tool',
+    h1: 'Protect PDF with Password Online',
+    h2: 'Enterprise-Grade PDF Encryption',
+    description: 'Add password protection and encryption to your PDF documents online. Secure sensitive files in seconds without software installation.',
+    longDescription: 'Keep your sensitive information safe from unauthorized eyes. Our PDF protection tool uses advanced encryption to lock your files with a custom password. Perfect for contracts, financial statements, or personal records.',
+    keywords: 'protect PDF, password protect PDF, encrypt PDF, secure PDF, lock PDF file, PDF password tool',
     howTo: [
       'Upload the PDF you wish to encrypt.',
-      'Set a strong password for your document.',
-      'Click the "Protect PDF" button to encrypt the file with AES standards.',
-      'Download your newly secured PDF.'
+      'Set a strong, unique password for your document.',
+      'Click the "Protect PDF" button to apply encryption.',
+      'Download your securely locked PDF.'
+    ],
+    faqs: [
+      { q: "What happens if I forget the password?", a: "For security reasons, we do not store your passwords. If you lose it, the file cannot be decrypted by us." },
+      { q: "What encryption level is used?", a: "We use standard 128-bit or 256-bit AES encryption to ensure maximum security." }
     ]
   },
   'unlock-pdf': {
     title: 'Unlock PDF — Remove PDF Password Online Free',
-    description:
-      'Remove password protection from PDFs online. Unlock secured PDFs instantly and for free — no desktop software needed.',
-    keywords:
-      'unlock PDF, remove PDF password, PDF unlocker, decrypt PDF, unsecure PDF, open protected PDF',
+    h1: 'Unlock Password Protected PDFs',
+    h2: 'Access Your Secured PDF Files Instantly',
+    description: 'Remove password protection from PDFs online. Unlock secured PDFs instantly and for free — no desktop software needed.',
+    longDescription: 'Need to edit or print a PDF that is locked? Our PDF unlocker helps you remove passwords from authorized files so you can use them freely. Simply upload and let our engine handle the decryption.',
+    keywords: 'unlock PDF, remove PDF password, PDF unlocker, decrypt PDF, unsecure PDF, open protected PDF',
     howTo: [
       'Select the password-protected PDF file you want to unlock.',
-      'Wait for the tool to analyze the file (ensure you have the right to unlock it).',
-      'Click the "Unlock PDF" button to strip the security.',
+      'Confirm you have the rights to unlock the file.',
+      'Click the "Unlock PDF" button.',
       'Download your unlocked PDF file.'
+    ],
+    faqs: [
+      { q: "Can you unlock any PDF?", a: "We can remove standard owner passwords. If a file has a strong user/open password, you may still need to provide it to finalize the decryption." }
     ]
   },
   'reorder-pdf': {
     title: 'Reorder PDF Pages — Rearrange PDF Pages Online',
-    description:
-      'Rearrange and reorder pages in your PDF document online. Specify a custom page order to reorganize your PDF instantly for free.',
-    keywords:
-      'reorder PDF pages, rearrange PDF, reorganize PDF, change page order PDF, PDF page organizer',
+    h1: 'Rearrange PDF Pages Online',
+    h2: 'The Easiest PDF Page Organizer',
+    description: 'Rearrange and reorder pages in your PDF document online. Specify a custom page order to reorganize your PDF instantly for free.',
+    longDescription: 'Get your document pages in the perfect sequence. Our reordering tool lets you visually or manually rearrange pages within a PDF. No more messy documents—clean up your presentations or reports in seconds.',
+    keywords: 'reorder PDF pages, rearrange PDF, reorganize PDF, change page order PDF, PDF page organizer',
     howTo: [
       'Upload the PDF you want to reorganize.',
-      'Enter the new page order in the input field, separated by commas (e.g., 3, 1, 2).',
+      'Enter the new page order (e.g., 3, 1, 2) or drag pages to move them.',
       'Click the "Reorder PDF Pages" button.',
-      'Download your reorganized PDF file.'
+      'Download your newly organized PDF.'
     ]
   },
   'edit-pdf': {
     title: 'Edit PDF — Add Text to PDF Online Free',
-    description:
-      'Add custom text annotations to your PDF documents online for free. Specify position, font size, and color. No plugins or software required.',
-    keywords:
-      'edit PDF, add text to PDF, annotate PDF, PDF editor online free, write on PDF, PDF text tool',
+    h1: 'Edit PDF Online Free',
+    h2: 'Quick PDF Annotation & Text Addition',
+    description: 'Add custom text annotations to your PDF documents online for free. Specify position, font size, and color. No plugins or software required.',
+    longDescription: 'Simple edits made easy. If you need to add a note, fill out a field, or add a comment to a PDF, our editor is the quickest way to do it without downloading heavy software like Adobe Acrobat.',
+    keywords: 'edit PDF, add text to PDF, annotate PDF, PDF editor online free, write on PDF, PDF text tool',
     howTo: [
       'Upload the PDF file you need to annotate.',
-      'Enter the text you want to add and choose its position, size, and color.',
-      'Click the "Edit PDF" button to overlay your text onto the document.',
-      'Download your edited PDF.'
+      'Enter the text and choose the placement and style.',
+      'Click the "Edit PDF" button.',
+      'Download your edited document.'
     ]
   },
   'jpg-to-pdf': {
@@ -187,117 +208,120 @@ export const TOOL_SEO = {
   },
   'pdf-to-jpg': {
     title: 'PDF to JPG — Convert PDF Pages to Images Online Free',
-    description:
-      'Convert every page of your PDF to high-quality JPG images online. Single-page PDFs download as JPG; multi-page PDFs as a ZIP archive.',
-    keywords:
-      'PDF to JPG, convert PDF to image, PDF to PNG, PDF page to JPG, extract images from PDF, PDF image converter',
+    h1: 'Convert PDF to JPG Online',
+    h2: 'Extract High-Quality Images from PDF',
+    description: 'Convert every page of your PDF to high-quality JPG images online. Single-page PDFs download as JPG; multi-page PDFs as a ZIP archive.',
+    longDescription: 'Want to turn a PDF slide into a social media post? Our PDF to JPG converter extracts each page of your document as a high-resolution image file. It handles single and multi-page documents with ease.',
+    keywords: 'PDF to JPG, convert PDF to image, PDF to PNG, PDF page to JPG, extract images from PDF, PDF image converter',
     howTo: [
       'Upload the PDF document you want to convert into images.',
-      'Our engine processes each page into a separate high-resolution JPG.',
-      'Click "PDF to JPG" and download the resulting file.',
-      'If it is a multi-page PDF, you will receive a ZIP file containing all pages.'
+      'Click "PDF to JPG" and wait for the conversion to complete.',
+      'Download your images (multi-page files will be in a ZIP archive).'
     ]
   },
   'pdf-to-excel': {
     title: 'PDF to Excel — Convert PDF Tables to XLSX Online Free',
-    description:
-      'Extract tables and data from PDF files and convert them to Excel XLSX spreadsheets for free. Fast, secure, and no account needed.',
-    keywords:
-      'PDF to Excel, PDF to XLSX, convert PDF to spreadsheet, extract table from PDF, PDF Excel converter free',
+    h1: 'Convert PDF to Excel Online',
+    h2: 'Extract PDF Tables to Editable Spreadsheets',
+    description: 'Extract tables and data from PDF files and convert them to Excel XLSX spreadsheets for free. Fast, secure, and no account needed.',
+    longDescription: 'Stop manual data entry. If you have a PDF table, our tool will extract the cellular data and formatting into a perfect Excel spreadsheet. Ideal for financial analysis and data migration.',
+    keywords: 'PDF to Excel, PDF to XLSX, convert PDF to spreadsheet, extract table from PDF, PDF Excel converter free',
     howTo: [
-      'Select the PDF file that contains tables or structured data.',
-      'Wait for the engine to analyze and extract the cellular data.',
-      'Click "PDF to Excel" to generate your spreadsheet.',
-      'Download your editable Excel XLSX file.'
+      'Select the PDF file containing the data tables.',
+      'Click "PDF to Excel" to start the extraction.',
+      'Download your XLSX file and start editing.'
     ]
   },
   'word-to-pdf': {
     title: 'Word to PDF — Convert DOCX to PDF Online Free',
-    description:
-      'Convert Microsoft Word DOCX files to PDF documents online for free. Fast conversion with formatting preserved — instant download.',
-    keywords:
-      'Word to PDF, DOCX to PDF, convert Word to PDF, Word PDF converter, DOC to PDF online free',
+    h1: 'Convert Word to PDF Online',
+    h2: 'Professional DOCX to PDF Conversion',
+    description: 'Convert Microsoft Word DOCX files to PDF documents online for free. Fast conversion with formatting preserved — instant download.',
+    longDescription: 'Ensure your document looks exactly the same on every device by converting it to PDF. Our Word to PDF tool preserves fonts, spacing, and images perfectly.',
+    keywords: 'Word to PDF, DOCX to PDF, convert Word to PDF, Word PDF converter, DOC to PDF online free',
     howTo: [
-      'Upload your .docx or .doc file to the converter.',
-      'Click the "Word to PDF" button to process your document.',
-      'The tool magically transforms your Word file into a PDF while keeping your fonts and layout.',
-      'Download your new PDF document.'
+      'Upload your .docx or .doc file.',
+      'Click the "Word to PDF" button.',
+      'Download your professional PDF document.'
     ]
   },
   'excel-to-pdf': {
     title: 'Excel to PDF — Convert XLSX Spreadsheets to PDF Free',
-    description:
-      'Convert Excel XLSX spreadsheets to clean PDF documents online for free. No Microsoft Office needed — start converting instantly.',
-    keywords:
-      'Excel to PDF, XLSX to PDF, convert Excel to PDF, spreadsheet to PDF, XLS to PDF free online',
+    h1: 'Convert Excel to PDF Online',
+    h2: 'Transform Spreadsheets into Clean PDF Reports',
+    description: 'Convert Excel XLSX spreadsheets to clean PDF documents online for free. No Microsoft Office needed — start converting instantly.',
+    longDescription: 'Turn your data into a readable report. Our Excel to PDF converter ensures your tables and charts are formatted correctly for viewing or printing.',
+    keywords: 'Excel to PDF, XLSX to PDF, convert Excel to PDF, spreadsheet to PDF, XLS to PDF free online',
     howTo: [
-      'Select and upload your Excel spreadsheet (.xlsx or .xls).',
-      'The tool maps your sheets and cells into a PDF-friendly presentation.',
-      'Click "Excel to PDF" to finalize the conversion.',
-      'Download your clean PDF file.'
+      'Upload your Excel spreadsheet.',
+      'Click "Excel to PDF" to process the conversion.',
+      'Download your PDF report.'
     ]
   },
   'ppt-to-pdf': {
     title: 'PowerPoint to PDF — Convert PPTX to PDF Online Free',
-    description:
-      'Convert PowerPoint PPTX presentations to PDF documents online for free. Share your slides as a portable PDF file without PowerPoint.',
-    keywords:
-      'PowerPoint to PDF, PPTX to PDF, convert presentation to PDF, PPT to PDF free, slide to PDF converter',
+    h1: 'Convert PowerPoint to PDF Online',
+    h2: 'Share Your Slides as Portable PDF Files',
+    description: 'Convert PowerPoint PPTX presentations to PDF documents online for free. Share your slides as a portable PDF file without PowerPoint.',
+    longDescription: 'Make your presentations accessible to everyone. By converting PowerPoint slides to PDF, you ensure that they can be viewed on any device without software compatibility issues.',
+    keywords: 'PowerPoint to PDF, PPTX to PDF, convert presentation to PDF, PPT to PDF free, slide to PDF converter',
     howTo: [
-      'Upload your PowerPoint (.pptx) file to the upload box.',
-      'Click "PowerPoint to PDF" to start transforming your slides.',
-      'Download your presentation as a portable PDF document.'
+      'Upload your PPTX or PPT file.',
+      'Click "PowerPoint to PDF".',
+      'Download your slides as a single PDF.'
     ]
   },
   'html-to-pdf': {
     title: 'HTML to PDF — Convert Web Pages to PDF Online Free',
-    description:
-      'Convert HTML files and web pages to PDF documents online for free. Upload your HTML file and receive a clean, printable PDF instantly.',
-    keywords:
-      'HTML to PDF, convert webpage to PDF, HTML file to PDF, web page PDF converter, HTML PDF online free',
+    h1: 'Convert HTML to PDF Online',
+    h2: 'Save Webpages as Offline PDF Documents',
+    description: 'Convert HTML files and web pages to PDF documents online for free. Upload your HTML file and receive a clean, printable PDF instantly.',
+    longDescription: 'Archive web content or save online articles for later reading. Our HTML to PDF tool renders code into a clean document format.',
+    keywords: 'HTML to PDF, convert webpage to PDF, HTML file to PDF, web page PDF converter, HTML PDF online free',
     howTo: [
-      'Upload your .html file or a snapshot of a webpage.',
-      'Click the "HTML to PDF" button to generate the report.',
-      'Download your clean PDF document.'
+      'Upload your .html file.',
+      'Click "HTML to PDF".',
+      'Download your PDF snapshot.'
     ]
   },
   'compress-image': {
     title: 'Compress Image — Reduce Image File Size Online Free',
-    description:
-      'Compress JPG, PNG, and WebP images online for free. Reduce file size up to 80% while maintaining visual quality — instant, no signup.',
-    keywords:
-      'compress image, reduce image size, image compressor, optimize image, shrink photo, JPG PNG compressor free',
+    h1: 'Compress Images Online Free',
+    h2: 'Fast JPG, PNG, & WebP Compression',
+    description: 'Compress JPG, PNG, and WebP images online for free. Reduce file size up to 80% while maintaining visual quality — instant, no signup.',
+    longDescription: 'Speed up your website and save storage space. Our image compressor uses smart techniques to shrink images without making them look pixelated or blurry.',
+    keywords: 'compress image, reduce image size, image compressor, optimize image, shrink photo, JPG PNG compressor free',
     howTo: [
-      'Select the image (JPG, PNG, or WebP) you need to shrink.',
-      'Optionally, select the quality level or output format.',
-      'Click "Compress Image" to reduce the file size.',
-      'Download your optimized image instantly.'
+      'Upload the images you want to shrink.',
+      'Click "Compress Image".',
+      'Download your optimized images.'
     ]
   },
   'resize-image': {
     title: 'Resize Image — Change Image Dimensions Online Free',
-    description:
-      'Resize JPG, PNG, and WebP images to any dimension online for free. Maintain aspect ratio or set custom width and height — instant download.',
-    keywords:
-      'resize image, change image size, image resizer online, scale image, crop resize photo free, image dimensions',
+    h1: 'Resize Images Online Free',
+    h2: 'Custom Dimensions for Any Purpose',
+    description: 'Resize JPG, PNG, and WebP images to any dimension online for free. Maintain aspect ratio or set custom width and height — instant download.',
+    longDescription: 'Get the exact dimensions you need for social media, print, or web design. Our resizer lets you scale images precisely while keeping things crisp.',
+    keywords: 'resize image, change image size, image resizer online, scale image, crop resize photo free, image dimensions',
     howTo: [
-      'Upload the image you want to resize.',
-      'Input the desired width and height, and choose a fit mode.',
-      'Click "Resize Image" to adjust the dimensions.',
-      'Download your newly sized image.'
+      'Upload your image file.',
+      'Enter the new width and height.',
+      'Click "Resize Image" and download the result.'
     ]
   },
   'convert-image': {
     title: 'Convert Image — Convert JPG PNG WebP BMP Online Free',
-    description:
-      'Convert images between JPG, PNG, WebP, BMP, GIF, and TIFF formats online for free. Fast image format converter — no account, no software.',
-    keywords:
-      'convert image, image converter, JPG to PNG, PNG to WebP, WebP to JPG, BMP to PNG, image format converter free',
+    h1: 'Convert Image Formats Online',
+    h2: 'The Ultimate Image Format Converter',
+    description: 'Convert images between JPG, PNG, WebP, BMP, GIF, and TIFF formats online for free. Fast image format converter — no account, no software.',
+    longDescription: 'Swap between image formats in a heart beat. Whether you need a transparent PNG or a lightweight WebP, our converter handles it all in high quality.',
+    keywords: 'convert image, image converter, JPG to PNG, PNG to WebP, WebP to JPG, BMP to PNG, image format converter free',
     howTo: [
-      'Select the image file you want to convert.',
-      'Choose your target output format (e.g., JPEG, PNG, WebP, BMP, TIFF, GIF).',
-      'Click the "Convert Image" button.',
-      'Download your image in its new format.'
+      'Upload the image or image sets.',
+      'Choose your desired output format.',
+      'Click "Convert Image".',
+      'Download your new files.'
     ]
   },
 };
@@ -415,7 +439,7 @@ export function buildWebsiteJsonLd() {
       '@type': 'Organization',
       name: 'ILoveDocs',
       url: SITE_URL,
-      logo: `${SITE_URL}/favicon.svg`,
+      logo: `${SITE_URL}/logo.png`,
       sameAs: [],
     },
   ];
@@ -476,5 +500,24 @@ export function buildToolFaqJsonLd(tool, seoData) {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
     mainEntity: faqsToUse,
+  };
+}
+
+/**
+ * Build ItemList JSON-LD for the Tools listing page.
+ */
+export function buildToolsItemListJsonLd(tools) {
+  const SITE_URL = 'https://ilovedocs.in';
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Online Document Tools',
+    description: 'A comprehensive list of free online PDF and image processing tools.',
+    itemListElement: tools.map((tool, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: tool.name,
+      url: `${SITE_URL}/tools/${tool.id}`,
+    })),
   };
 }
