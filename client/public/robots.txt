@@ -1,12 +1,18 @@
 User-agent: *
+# Allow everything by default
 Allow: /
+# Explicitly allow Google to see the sitemap and robots
+Allow: /sitemap.xml
+Allow: /robots.txt
+
+# Disallow private/temporary areas
 Disallow: /upload/
 Disallow: /api/
 Disallow: /dashboard
 Disallow: /login
 Disallow: /register
 
-# Crawl-delay for polite crawling
+# Crowl-delay for polite crawling
 Crawl-delay: 1
 
 # Sitemaps
