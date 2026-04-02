@@ -24,6 +24,16 @@ const PORT = process.env.PORT || 5000;
 // Trust proxy for rate limiting on hosting platforms like Render + Cloudflare
 app.set('trust proxy', true);
 
+// ── Force HTTPS ─────────────────────────────────────────────
+// Render uses 'x-forwarded-proto' to tell us the original protocol.
+// We redirect to https if the request is not secure.
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
+    return res.redirect(`https://${req.get('host')}${req.url}`);
+  }
+  next();
+});
+
 // Security headers
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
