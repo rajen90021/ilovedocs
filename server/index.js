@@ -6,6 +6,8 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
 const cron = require('node-cron');
+const https = require('https');
+const http = require('http');
 const { cleanExpiredFiles } = require('./services/cleanupService');
 const { initDB } = require('./services/database');
 
@@ -64,6 +66,11 @@ app.use('/api/image', imageRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/tools', toolsRoutes);
 
+// Health check — must be defined BEFORE static file middleware catch-all
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
+});
+
 // Explicitly serve robots.txt and sitemap.xml
 // This ensures they are served correctly even if the static build folder is missing or if the catch-all interferes
 app.get('/robots.txt', (req, res) => {
@@ -104,10 +111,7 @@ app.get(/.*/, (req, res) => {
   }
 });
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
-});
+
 
 // Error handler
 app.use((err, req, res, next) => {
@@ -128,6 +132,27 @@ cron.schedule('*/30 * * * *', () => {
   console.log('[Cron] Cleaning expired files...');
   cleanExpiredFiles();
 });
+
+// ── Keep-Alive: Prevent Render free-tier cold starts ────────────
+// Pings our own /api/health endpoint every 14 minutes so the server
+// never goes idle. Only runs in production (RENDER_EXTERNAL_URL is
+// automatically set by Render on all deployed services).
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+if (RENDER_URL) {
+  const pingUrl = `${RENDER_URL}/api/health`;
+  console.log(`[Keep-Alive] Self-ping enabled → ${pingUrl}`);
+
+  cron.schedule('*/10 * * * *', () => {
+    const client = pingUrl.startsWith('https') ? https : http;
+    client.get(pingUrl, (res) => {
+      console.log(`[Keep-Alive] Ping sent → HTTP ${res.statusCode}`);
+    }).on('error', (err) => {
+      console.warn('[Keep-Alive] Ping failed:', err.message);
+    });
+  });
+} else {
+  console.log('[Keep-Alive] Skipped (not running on Render).');
+}
 
 app.listen(PORT, () => {
   console.log(`\n🚀 ILoveDocs Server running on http://localhost:${PORT}`);
