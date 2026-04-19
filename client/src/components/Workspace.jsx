@@ -194,18 +194,53 @@ export default function Workspace({ tool, config }) {
 
       toast.success(`${tool.name} complete!`);
     } catch (err) {
-      const errorMsg = err.response?.data?.error || 'Processing failed. Please try again.';
+      const status = err.response?.status;
+      const errorData = err.response?.data?.error || 'Processing failed. Please try again.';
 
-      if (errorMsg.includes('Transcript unavailable')) {
-        setResult({
+      // Map errors to user-friendly UI states
+      let errorState = {
+        isError: true,
+        errorTitle: 'Something Went Wrong',
+        errorMsg: errorData,
+        suggestion: 'Please verify the link and try again in a few moments.',
+        iconName: 'AlertCircle'
+      };
+
+      if (errorData.includes('Transcript unavailable') || errorData.includes('no captions found')) {
+        errorState = {
           isError: true,
           errorTitle: 'Captions Not Found',
-          errorMsg: 'This video does not have captions or transcripts enabled. YouTube requires transcripts for our Summarizer and Transcript tools to function.',
-          suggestion: 'Please try a video that has Closed Captions (CC) enabled.'
-        });
-      } else {
-        toast.error(errorMsg);
+          errorMsg: 'This YouTube video does not have captions or transcripts enabled.',
+          suggestion: 'Our AI needs transcripts to summarize or extract text. Please try a video with Closed Captions (CC) enabled.',
+          iconName: 'FileX'
+        };
+      } else if (status === 403 || errorData.includes('blocked the request')) {
+        errorState = {
+          isError: true,
+          errorTitle: 'Temporary Security Limit',
+          errorMsg: 'YouTube has temporarily restricted our access to this content.',
+          suggestion: 'This usually clears in 5-10 minutes. Please try again shortly or use a different video.',
+          iconName: 'ShieldAlert'
+        };
+      } else if (status === 400 || errorData.includes('Invalid YouTube URL')) {
+        errorState = {
+          isError: true,
+          errorTitle: 'Invalid Link',
+          errorMsg: 'The URL provided doesn\'t seem to be a standard YouTube link.',
+          suggestion: 'Make sure it looks like: https://youtube.com/watch?v=VIDEO_ID',
+          iconName: 'Link2Off'
+        };
+      } else if (status === 500) {
+        errorState = {
+          isError: true,
+          errorTitle: 'System Error',
+          errorMsg: 'Our processing engine encountered an unexpected hurdle.',
+          suggestion: 'Our team has been notified. Please try another video or check back soon.',
+          iconName: 'ServerCrash'
+        };
       }
+
+      setResult(errorState);
     } finally {
       setProcessing(false);
     }
@@ -669,15 +704,20 @@ export default function Workspace({ tool, config }) {
                   </>
                 )}
 
-                {/* ─── Specific Error Notice (Transcript/CC Issues) ─── */}
+                {/* ─── Modernized Error Notice ─── */}
                 {result.isError && (
-                  <div className="specific-error-view" style={{ textAlign: 'center', padding: '24px 0' }}>
-                    <div style={{ background: '#fff1f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                      <Icons.AlertCircle color="#ef4444" size={40} />
-                      <h3 style={{ color: '#991b1b', fontSize: '1.15rem' }}>{result.errorTitle}</h3>
-                      <p style={{ color: '#b91c1c', fontSize: '0.9rem', lineHeight: '1.6' }}>{result.errorMsg}</p>
-                      <div style={{ marginTop: '8px', padding: '8px 16px', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, color: '#ef4444' }}>
-                        💡 {result.suggestion}
+                  <div className="specific-error-view animated-in" style={{ textAlign: 'center', padding: '16px 0' }}>
+                    <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-light)', borderRadius: '16px', padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+                      <div className="error-icon-box" style={{ padding: '16px', borderRadius: '50%', background: result.iconName === 'ShieldAlert' ? '#fffbeb' : '#fff1f2', color: result.iconName === 'ShieldAlert' ? '#f59e0b' : '#ef4444' }}>
+                        {Icons[result.iconName] ? <Icons[result.iconName] size={32} /> : <Icons.AlertCircle size={32} />}
+                      </div>
+                      <div className="error-text-content">
+                        <h3 style={{ color: 'var(--text-main)', fontSize: '1.25rem', marginBottom: '8px' }}>{result.errorTitle}</h3>
+                        <p style={{ color: 'var(--text-soft)', fontSize: '0.925rem', lineHeight: '1.6', maxWidth: '400px', margin: '0 auto' }}>{result.errorMsg}</p>
+                      </div>
+                      <div style={{ marginTop: '8px', padding: '12px 20px', background: 'rgba(0, 0, 0, 0.03)', borderRadius: '12px', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Icons.Lightbulb size={16} color="var(--brand-primary)" />
+                        <span>{result.suggestion}</span>
                       </div>
                     </div>
                   </div>
