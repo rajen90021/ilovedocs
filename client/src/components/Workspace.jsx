@@ -709,7 +709,10 @@ export default function Workspace({ tool, config }) {
                   <div className="specific-error-view animated-in" style={{ textAlign: 'center', padding: '16px 0' }}>
                     <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-light)', borderRadius: '16px', padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
                       <div className="error-icon-box" style={{ padding: '16px', borderRadius: '50%', background: result.iconName === 'ShieldAlert' ? '#fffbeb' : '#fff1f2', color: result.iconName === 'ShieldAlert' ? '#f59e0b' : '#ef4444' }}>
-                        {Icons[result.iconName] ? <Icons[result.iconName] size={32} /> : <Icons.AlertCircle size={32} />}
+                        {(() => {
+                           const IconComp = Icons[result.iconName] || Icons.AlertCircle;
+                           return <IconComp size={32} />;
+                        })()}
                       </div>
                       <div className="error-text-content">
                         <h3 style={{ color: 'var(--text-main)', fontSize: '1.25rem', marginBottom: '8px' }}>{result.errorTitle}</h3>
