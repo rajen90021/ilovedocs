@@ -31,9 +31,9 @@ export default function Footer() {
               Free, fast, and secure document tools. Process your files directly in the browser with no limits.
             </p>
             <div className="footer__social">
-              <a href="#" aria-label="GitHub" className="footer__social-link"><Github size={18} /></a>
-              <a href="#" aria-label="Twitter" className="footer__social-link"><Twitter size={18} /></a>
-              <a href="#" aria-label="LinkedIn" className="footer__social-link"><Linkedin size={18} /></a>
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="footer__social-link"><Github size={18} /></a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="footer__social-link"><Twitter size={18} /></a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="footer__social-link"><Linkedin size={18} /></a>
             </div>
           </div>
 
@@ -64,9 +64,9 @@ export default function Footer() {
           <div className="footer__section">
             <h3 className="footer__heading">Security & Privacy</h3>
             <ul className="footer__links">
-              <li><a href="#" className="footer__link">Privacy Policy</a></li>
-              <li><a href="#" className="footer__link">Terms of Service</a></li>
-              <li><a href="#" className="footer__link">Cookie Policy</a></li>
+              <li><Link to="/legal/privacy" className="footer__link">Privacy Policy</Link></li>
+              <li><Link to="/legal/terms" className="footer__link">Terms of Service</Link></li>
+              <li><Link to="/legal/cookies" className="footer__link">Cookie Policy</Link></li>
             </ul>
             <div className="footer__badge">
               <span>🔒</span>

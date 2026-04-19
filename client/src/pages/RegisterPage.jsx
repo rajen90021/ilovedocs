@@ -115,7 +115,7 @@ export default function RegisterPage() {
           </button>
 
           <p className="auth-terms">
-            By registering, you agree to our <a href="#" className="auth-link">Terms of Service</a> and <a href="#" className="auth-link">Privacy Policy</a>.
+            By registering, you agree to our <Link to="/legal/terms" className="auth-link">Terms of Service</Link> and <Link to="/legal/privacy" className="auth-link">Privacy Policy</Link>.
           </p>
         </form>
 

@@ -17,12 +17,13 @@ const pdfRoutes = require('./routes/pdf');
 const imageRoutes = require('./routes/image');
 const fileRoutes = require('./routes/files');
 const toolsRoutes = require('./routes/tools');
+const youtubeRoutes = require('./routes/youtube');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Trust proxy for rate limiting on hosting platforms like Render + Cloudflare
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 
 // ── Force HTTPS ─────────────────────────────────────────────
 // Render uses 'x-forwarded-proto' to tell us the original protocol.
@@ -75,6 +76,7 @@ app.use('/api/pdf', pdfRoutes);
 app.use('/api/image', imageRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/tools', toolsRoutes);
+app.use('/api/youtube', youtubeRoutes); // YouTube Toolkit
 
 // Health check — must be defined BEFORE static file middleware catch-all
 app.get('/api/health', (req, res) => {
@@ -107,16 +109,16 @@ app.use(express.static(path.join(__dirname, '../client/dist')));
 app.get(/.*/, (req, res) => {
   // If it's an API route that somehow hit here, send 404
   if (req.url.startsWith('/api')) return res.status(404).json({ error: 'API route not found' });
-  
+
   const indexPath = path.join(__dirname, '../client/dist/index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
     // In local development, you might not have run 'npm run build' yet.
     // Instead of crashing, we provide a status or 404.
-    res.status(404).json({ 
+    res.status(404).json({
       info: 'ILoveDocs API is running.',
-      error: 'Frontend build not found at client/dist. For local testing, use the Vite dev server at http://localhost:5173' 
+      error: 'Frontend build not found at client/dist. For local testing, use the Vite dev server at http://localhost:5173'
     });
   }
 });

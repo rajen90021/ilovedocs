@@ -53,9 +53,9 @@ function sendFileResponse(res, outputPath, filename, mimeType) {
 async function extractPDFText(filePath) {
   const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
   const data = new Uint8Array(fs.readFileSync(filePath));
-  const pdfDoc = await pdfjsLib.getDocument({ 
-    data, 
-    useSystemFonts: true, 
+  const pdfDoc = await pdfjsLib.getDocument({
+    data,
+    useSystemFonts: true,
     disableFontFace: true,
     nativeImageDecoderSupport: 'none'
   }).promise;
@@ -64,7 +64,7 @@ async function extractPDFText(filePath) {
   for (let i = 1; i <= pdfDoc.numPages; i++) {
     const page = await pdfDoc.getPage(i);
     const content = await page.getTextContent();
-    
+
     // Sort items safely by vertical position then horizontal
     const items = content.items
       .filter(item => item && item.transform && item.transform.length >= 6)
@@ -173,6 +173,15 @@ router.get('/', (req, res) => {
     { id: 'compress-image', name: 'Compress Image', description: 'Reduce image file size with smart compression', category: 'image', icon: 'image', color: '#FF6B6B', endpoint: '/api/image/compress', acceptedTypes: ['.jpg', '.jpeg', '.png', '.webp'], multiple: false },
     { id: 'resize-image', name: 'Resize Image', description: 'Change image dimensions to any size', category: 'image', icon: 'maximize', color: '#4ECDC4', endpoint: '/api/image/resize', acceptedTypes: ['.jpg', '.jpeg', '.png', '.webp', '.bmp'], multiple: false },
     { id: 'convert-image', name: 'Convert Image', description: 'Convert between JPG, PNG, WebP, and more', category: 'image', icon: 'refresh-cw', color: '#45B7D1', endpoint: '/api/image/convert', acceptedTypes: ['.jpg', '.jpeg', '.png', '.webp', '.bmp', '.gif', '.tiff'], multiple: false },
+    { id: 'yt-thumbnail', name: 'YouTube Thumbnail', description: 'Download HD thumbnails from any YouTube video', category: 'youtube', icon: 'image', color: '#EF4444', endpoint: '/api/youtube/thumbnail', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-tags', name: 'YouTube Tags', description: 'Extract hidden SEO tags and keywords from any video', category: 'youtube', icon: 'tag', color: '#EF4444', endpoint: '/api/youtube/tags', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-transcript', name: 'YouTube Transcript', description: 'Download full video transcript and captions', category: 'youtube', icon: 'file-text', color: '#EF4444', endpoint: '/api/youtube/transcript', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-region', name: 'Region Checker', description: 'Check if a video is blocked in specific countries', category: 'youtube', icon: 'globe', color: '#EF4444', endpoint: '/api/youtube/region-check', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-summarize', name: 'AI Summarizer', description: 'Get an AI-generated summary of any YouTube video', category: 'youtube', icon: 'sparkles', color: '#EF4444', endpoint: '/api/youtube/summarize', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-monetization', name: 'Monetization Checker', description: 'Check if a YouTube video or channel is monetized', category: 'youtube', icon: 'dollar-sign', color: '#EF4444', endpoint: '/api/youtube/monetization-check', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-seo-score', name: 'SEO Score Checker', description: 'Analyze title, tags, and description for maximum ranking', category: 'youtube', icon: 'bar-chart-3', color: '#EF4444', endpoint: '/api/youtube/seo-score', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-revenue', name: 'Revenue Calculator', description: 'Estimate monthly and yearly earnings for any channel', category: 'youtube', icon: 'piggy-bank', color: '#EF4444', endpoint: '/api/youtube/revenue-calculator', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-video-info', name: 'Video Info Viewer', description: 'Get complete metadata, stats and details of any video', category: 'youtube', icon: 'info', color: '#EF4444', endpoint: '/api/youtube/video-info', acceptedTypes: [], multiple: false, type: 'url' },
   ];
   res.json({ tools, total: tools.length });
 });
@@ -231,7 +240,7 @@ router.post('/pdf-to-excel', optionalAuth, upload.single('file'), async (req, re
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   try {
     let text = '';
-    try { text = await extractPDFText(req.file.path); } catch (e) {}
+    try { text = await extractPDFText(req.file.path); } catch (e) { }
     const rows = (text || 'No data').split('\n').filter(l => l.trim()).map(line => line.split(/\t|\s{2,}/).map(c => c.trim()));
     const wb = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet(rows.length ? rows : [['No data extracted']]), 'Sheet1');
@@ -274,7 +283,7 @@ router.post('/ppt-to-pdf', optionalAuth, upload.single('file'), async (req, res)
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   try {
     let text = '';
-    try { text = await officeParser.parseOfficeAsync(req.file.path); } catch (e) {}
+    try { text = await officeParser.parseOfficeAsync(req.file.path); } catch (e) { }
     const pdfDoc = await textToPDF(text || '(Could not extract slides content)');
     const outPath = path.join(UPLOAD_DIR, `converted_${uuidv4()}.pdf`);
     fs.writeFileSync(outPath, await pdfDoc.save());
@@ -291,7 +300,7 @@ router.post('/pdf-to-jpg', optionalAuth, upload.single('file'), async (req, res)
   try {
     const { createCanvas } = require('@napi-rs/canvas');
     const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
-    
+
     // Provide a CanvasFactory for pdfjs-dist to handle tiled patterns/masks
     class NodeCanvasFactory {
       create(width, height) {
@@ -320,10 +329,10 @@ router.post('/pdf-to-jpg', optionalAuth, upload.single('file'), async (req, res)
       cMapUrl: path.join(__dirname, '..', 'node_modules', 'pdfjs-dist', 'cmaps', '/'),
       cMapPacked: true,
     });
-    
+
     const pdfDoc = await loadingTask.promise;
     const canvasFactory = new NodeCanvasFactory();
-    
+
     // If it has multiple pages, zip them; otherwise just send page 1
     if (pdfDoc.numPages > 1) {
       const zipName = `converted_${uuidv4()}.zip`;
@@ -335,21 +344,21 @@ router.post('/pdf-to-jpg', optionalAuth, upload.single('file'), async (req, res)
       for (let i = 1; i <= pdfDoc.numPages; i++) {
         const page = await pdfDoc.getPage(i);
         let vp = page.getViewport({ scale: 2.0 });
-        
+
         // Safety cap for extremely large media boxes
         if (vp.width > 4000 || vp.height > 4000) {
-          vp = page.getViewport({ scale: 4000 / Math.max(vp.width/2.0, vp.height/2.0) });
+          vp = page.getViewport({ scale: 4000 / Math.max(vp.width / 2.0, vp.height / 2.0) });
         }
-        
+
         const canvas = createCanvas(Math.floor(vp.width), Math.floor(vp.height));
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+
         await page.render({ canvasContext: ctx, viewport: vp, canvasFactory }).promise;
         archive.append(canvas.toBuffer('image/jpeg'), { name: `page-${i}.jpg` });
       }
-      
+
       await archive.finalize();
       output.on('close', () => {
         trackFile(req, req.file, zipPath, 'pdf-to-jpg');
@@ -358,16 +367,16 @@ router.post('/pdf-to-jpg', optionalAuth, upload.single('file'), async (req, res)
     } else {
       const page = await pdfDoc.getPage(1);
       let vp = page.getViewport({ scale: 2.0 });
-      
+
       if (vp.width > 4000 || vp.height > 4000) {
-        vp = page.getViewport({ scale: 4000 / Math.max(vp.width/2.0, vp.height/2.0) });
+        vp = page.getViewport({ scale: 4000 / Math.max(vp.width / 2.0, vp.height / 2.0) });
       }
 
       const canvas = createCanvas(Math.floor(vp.width), Math.floor(vp.height));
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       await page.render({ canvasContext: ctx, viewport: vp, canvasFactory }).promise;
       const outPath = path.join(UPLOAD_DIR, `page1_${uuidv4()}.jpg`);
       fs.writeFileSync(outPath, canvas.toBuffer('image/jpeg'));

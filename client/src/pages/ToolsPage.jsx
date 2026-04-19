@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Grid3X3, Layers } from 'lucide-react';
 import ToolCard from '../components/ToolCard';
+import Header from '../components/Header';
 import SEOHead from '../components/SEOHead';
 import { API_URL } from '../context/AuthContext';
 import { buildToolsItemListJsonLd } from '../data/toolSEO';
@@ -9,8 +10,9 @@ import './ToolsPage.css';
 
 const CATEGORIES = [
   { id: 'all', label: 'All Tools' },
-  { id: 'pdf', label: 'PDF Tools' },
-  { id: 'image', label: 'Image Tools' },
+  { id: 'youtube', label: 'YouTube' },
+  { id: 'pdf', label: 'PDF' },
+  { id: 'image', label: 'Image' },
   { id: 'convert', label: 'Convert' },
 ];
 
@@ -18,8 +20,8 @@ const TOOLS_JSON_LD = (tools) => [
   {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: 'All PDF & Document Tools | ILoveDocs',
-    description: 'Browse 20+ free online PDF and document conversion tools. Merge, compress, and edit files 100% free.',
+    name: 'All YouTube, PDF & Image Tools | ILoveDocs',
+    description: 'Browse the ultimate free online toolkit for YouTube creators and professionals.',
     url: 'https://ilovedocs.in/tools',
   },
   buildToolsItemListJsonLd(tools)
@@ -38,7 +40,6 @@ export default function ToolsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-
   const filtered = tools.filter(tool => {
     const matchesSearch =
       search === '' ||
@@ -49,86 +50,85 @@ export default function ToolsPage() {
   });
 
   return (
-    <div className="tools-page">
+    <div className="app-container">
       <SEOHead
-        title="All Free PDF & Document Tools Online"
-        description="Browse 20+ free online PDF and document conversion tools. Merge PDF, compress PDF, convert PDF to Word, Excel, JPG, and more — no signup, no watermark."
-        keywords="all PDF tools, free document tools, PDF converter online, merge PDF, compress PDF, PDF to Word, Word to PDF, PDF tools list"
+        title="All Tools — Free YouTube & PDF Creator Kit"
+        description="Browse our suite of free online tools for YouTube creators and professionals. Get thumbnails, calculate revenue, check SEO scores, merge PDFs, and more."
+        keywords="all youtube tools, free PDF tools, online document tools, youtube revenue calculator, youtube SEO score"
         canonical="/tools"
         jsonLd={TOOLS_JSON_LD(tools)}
       />
-      <div className="tools-page__header">
-        <div className="tools-page__bg-glow" />
-        <div className="container">
-          <h1 className="tools-page__title animate-fade-up">
-            All <span className="text-gradient">Tools</span>
-          </h1>
-          <p className="tools-page__subtitle animate-fade-up delay-100">
-            {tools.length}+ free document and PDF tools — no signup required
-          </p>
 
-          {/* Search */}
-          <div className="tools-page__search animate-fade-up delay-200">
-            <div className="search-input-wrap">
-              <Search size={18} className="search-icon" />
-              <input
-                id="tool-search"
-                type="text"
-                placeholder="Search tools..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="search-input"
-              />
+      <Header 
+        tools={tools}
+        searchQuery={search}
+        setSearchQuery={setSearch}
+      />
+
+      <div className="tools-directory-layout">
+        {/* Hero Section */}
+        <div className="tools-hero">
+           <div className="bg-glow bg-glow-1" style={{ top: '-10%', left: '20%' }} />
+           <div className="container tools-hero-content">
+             <div className="badge badge-red animate-fade-up">Premium Toolkit</div>
+             <h1 className="animate-fade-up delay-100">
+               All <span className="text-gradient">Tools</span>
+             </h1>
+             <p className="subtitle animate-fade-up delay-200">
+               {tools.length}+ powerful utilities for creators and professionals. No signup required.
+             </p>
+           </div>
+        </div>
+
+        <div className="container directory-container">
+          {/* Filters & Tabs */}
+          <div className="directory-controls animate-fade-up delay-300">
+             <div className="category-tabs">
+                {CATEGORIES.map(cat => (
+                   <button
+                     key={cat.id}
+                     className={`cat-pill ${category === cat.id ? 'active' : ''}`}
+                     onClick={() => setCategory(cat.id)}
+                   >
+                     {cat.label}
+                     {cat.id !== 'all' && (
+                        <span className="cat-count">
+                           {tools.filter(t => t.category === cat.id).length}
+                        </span>
+                     )}
+                   </button>
+                ))}
+             </div>
+             
+             <div className="directory-meta">
+               <span className="results-count">Showing {filtered.length} tools</span>
+             </div>
+          </div>
+
+          {/* Grid */}
+          {loading ? (
+            <div className="premium-tools-grid">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="tool-card-skeleton shimmer" />
+              ))}
             </div>
-          </div>
+          ) : filtered.length === 0 ? (
+            <div className="empty-directory">
+              <Filter size={48} className="empty-icon" />
+              <h3>No tools found</h3>
+              <p>Try adjusting your search or category filter.</p>
+              <button className="btn btn-secondary" onClick={() => { setSearch(''); setCategory('all'); }}>
+                Clear Filters
+              </button>
+            </div>
+          ) : (
+            <div className="premium-tools-grid">
+              {filtered.map((tool, i) => (
+                <ToolCard key={tool.id} tool={tool} delay={i * 30} />
+              ))}
+            </div>
+          )}
         </div>
-      </div>
-
-      <div className="container" style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-4xl)' }}>
-        {/* Category Tabs */}
-        <div className="tools-page__tabs">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat.id}
-              className={`tools-page__tab ${category === cat.id ? 'active' : ''}`}
-              onClick={() => setCategory(cat.id)}
-            >
-              {cat.label}
-              {cat.id !== 'all' && (
-                <span className="tools-page__tab-count">
-                  {tools.filter(t => t.category === cat.id).length}
-                </span>
-              )}
-            </button>
-          ))}
-          <span className="tools-page__tab-results">
-            {filtered.length} tool{filtered.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-
-        {/* Grid */}
-        {loading ? (
-          <div className="tools-grid">
-            {[...Array(12)].map((_, i) => (
-              <div key={i} className="tool-card-skeleton" style={{ height: 160 }} />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="tools-page__empty">
-            <Filter size={48} style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-md)' }} />
-            <h3>No tools found</h3>
-            <p>Try a different search term or category</p>
-            <button className="btn btn-secondary btn-sm" onClick={() => { setSearch(''); setCategory('all'); }}>
-              Clear Filters
-            </button>
-          </div>
-        ) : (
-          <div className="tools-grid">
-            {filtered.map((tool, i) => (
-              <ToolCard key={tool.id} tool={tool} delay={i * 40} />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

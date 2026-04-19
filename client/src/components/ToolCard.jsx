@@ -3,6 +3,7 @@ import * as Icons from 'lucide-react';
 import './ToolCard.css';
 
 const categoryLabels = {
+  youtube: 'YouTube',
   pdf: 'PDF',
   image: 'Image',
   convert: 'Convert',
@@ -10,9 +11,10 @@ const categoryLabels = {
 };
 
 const categoryColors = {
-  pdf: 'badge-red',
+  youtube: 'badge-red',
+  pdf: 'badge-blue',
   image: 'badge-purple',
-  convert: 'badge-blue',
+  convert: 'badge-green',
   office: 'badge-green',
 };
 

@@ -1,243 +1,135 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowRight, Zap, Shield, Clock, Star, ChevronRight, FileText, Image, RefreshCw } from 'lucide-react';
+import { Filter } from 'lucide-react';
+import Header from '../components/Header';
 import ToolCard from '../components/ToolCard';
+import ContentSection from '../components/ContentSection';
 import SEOHead from '../components/SEOHead';
 import { buildWebsiteJsonLd } from '../data/toolSEO';
 import { API_URL } from '../context/AuthContext';
 import './HomePage.css';
 
-const stats = [
-  { value: '20+', label: 'PDF & Document Tools' },
-  { value: '100%', label: 'Free Forever' },
-  { value: '50MB', label: 'Max File Size' },
-  { value: '1hr', label: 'Auto File Delete' },
-];
-
-const features = [
-  {
-    icon: <Zap size={24} />,
-    title: 'Lightning Fast',
-    desc: 'Process documents in seconds with our optimized backend engine.',
-    color: '#F59E0B',
-  },
-  {
-    icon: <Shield size={24} />,
-    title: 'Secure & Private',
-    desc: 'All files are encrypted in transit and automatically deleted after 1 hour.',
-    color: '#10B981',
-  },
-  {
-    icon: <Clock size={24} />,
-    title: 'No Signup Required',
-    desc: 'Start converting instantly. Create an account to save your history.',
-    color: '#6C63FF',
-  },
-  {
-    icon: <Star size={24} />,
-    title: 'High Quality Output',
-    desc: 'Maintain document integrity and quality through every conversion.',
-    color: '#EC4899',
-  },
-];
-
-const categories = [
-  { id: 'pdf', label: 'PDF Tools', icon: <FileText size={18} />, color: '#E63946' },
-  { id: 'image', label: 'Image Tools', icon: <Image size={18} />, color: '#FF6B6B' },
-  { id: 'convert', label: 'Convert', icon: <RefreshCw size={18} />, color: '#4ECDC4' },
+const CATEGORIES = [
+  { id: 'all', label: 'All Tools' },
+  { id: 'youtube', label: 'YouTube' },
+  { id: 'pdf', label: 'PDF' },
+  { id: 'image', label: 'Image' },
+  { id: 'convert', label: 'Convert' },
 ];
 
 export default function HomePage() {
   const [tools, setTools] = useState([]);
-  const [activeCategory, setActiveCategory] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('all');
 
   useEffect(() => {
     axios.get(`${API_URL}/api/tools`)
-      .then(res => setTools(res.data.tools || []))
+      .then(res => {
+        setTools(res.data.tools || []);
+      })
       .catch(() => setTools([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = activeCategory === 'all'
-    ? tools.slice(0, 8)
-    : tools.filter(t => t.category === activeCategory).slice(0, 8);
+  const filtered = tools.filter(tool => {
+    const matchesSearch =
+      searchQuery === '' ||
+      tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tool.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCat = category === 'all' || tool.category === category;
+    return matchesSearch && matchesCat;
+  });
 
   return (
-    <div className="home">
+    <div className="home-container">
       <SEOHead
-        title="Free Online PDF & Document Tools"
-        description="ILoveDocs — Merge, split, compress, rotate, watermark, convert PDF files & images online for free. 20+ powerful tools. No signup, no watermark, files auto-deleted in 1 hour."
-        keywords="free PDF tools, merge PDF online, compress PDF, PDF to Word, Word to PDF, PDF to JPG, PDF converter, image converter, online document tools"
+        title="ILoveDocs — #1 Free YouTube & PDF Toolkit Dashboard"
+        description="Premium online tools for creators and professionals. Download YouTube thumbnails, extract tags, merge PDFs, and summarize videos with AI. 100% Free."
+        keywords="youtube SEO, youtube thumbnail downloader, merge pdf free, video summarizer ai, tag extractor"
         canonical="/"
         jsonLd={buildWebsiteJsonLd()}
       />
-      {/* Hero */}
-      <section className="hero">
-        <div className="hero__bg-grid" />
-        <div className="hero__bg-glow hero__bg-glow--1" />
-        <div className="hero__bg-glow hero__bg-glow--2" />
-        <div className="container hero__content">
-          <div className="hero__badge animate-fade-up">
-            <span className="hero__badge-dot" />
-            Free Online Document Tools Platform
-          </div>
-          <h1 className="hero__title animate-fade-up delay-100">
-            Transform Your <br />
-            <span className="text-gradient">Documents</span> Instantly
-          </h1>
-          <p className="hero__subtitle animate-fade-up delay-200">
-            Merge, split, compress, convert, and edit PDFs and images. 
-            20+ powerful tools — all free, all private, all fast.
-          </p>
-          <div className="hero__cta animate-fade-up delay-300">
-            <Link to="/tools" className="btn btn-primary btn-lg">
-              Explore All Tools <ArrowRight size={18} />
-            </Link>
-            <Link to="/tools/merge-pdf" className="btn btn-secondary btn-lg">
-              Try Merge PDF
-            </Link>
-          </div>
 
-          {/* Stats */}
-          <div className="hero__stats animate-fade-up delay-400">
-            {stats.map(stat => (
-              <div key={stat.label} className="hero__stat">
-                <span className="hero__stat-value text-gradient">{stat.value}</span>
-                <span className="hero__stat-label">{stat.label}</span>
+      <Header 
+        tools={tools}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
+
+      <main className="home-main">
+        {/* All Tools Hero */}
+        <section className="home-hero">
+           <div className="bg-glow bg-glow-1" />
+           <div className="container hero-content">
+              <div className="hero-badge animate-fade-up">PREMIUM TOOLKIT</div>
+              <h1 className="hero-title animate-fade-up delay-100">
+                All <span className="text-gradient">Tools</span>
+              </h1>
+              <p className="hero-subtitle animate-fade-up delay-200">
+                {tools.length}+ powerful utilities for creators and professionals. No signup required.
+              </p>
+           </div>
+        </section>
+
+        {/* Directory Controls */}
+        <section className="directory-section">
+          <div className="container">
+            <div className="directory-controls animate-fade-up delay-300">
+               <div className="category-tabs">
+                  {CATEGORIES.map(cat => (
+                     <button
+                       key={cat.id}
+                       className={`cat-pill ${category === cat.id ? 'active' : ''}`}
+                       onClick={() => setCategory(cat.id)}
+                     >
+                       {cat.label} {cat.id !== 'all' && <span className="cat-count">{tools.filter(t => t.category === cat.id).length}</span>}
+                     </button>
+                  ))}
+               </div>
+               
+               <div className="directory-meta">
+                 <span className="results-count">Showing {filtered.length} tools</span>
+               </div>
+            </div>
+
+            {loading ? (
+              <div className="tools-grid-home">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="tool-skeleton shimmer" />
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Tools Section */}
-      <section className="tools-section">
-        <div className="container">
-          <div className="section-header">
-            <div>
-              <h2 className="section-title">All <span className="text-gradient">Tools</span></h2>
-              <p className="section-subtitle">Everything you need to work with documents</p>
-            </div>
-            <Link to="/tools" className="btn btn-secondary btn-sm">
-              View All <ChevronRight size={14} />
-            </Link>
-          </div>
-
-          {/* Category Filter */}
-          <div className="category-filter">
-            <button
-              className={`category-btn ${activeCategory === 'all' ? 'active' : ''}`}
-              onClick={() => setActiveCategory('all')}
-            >
-              All Tools
-            </button>
-            {categories.map(cat => (
-              <button
-                key={cat.id}
-                className={`category-btn ${activeCategory === cat.id ? 'active' : ''}`}
-                onClick={() => setActiveCategory(cat.id)}
-                style={{ '--cat-color': cat.color }}
-              >
-                {cat.icon} {cat.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Tool Grid */}
-          {loading ? (
-            <div className="tools-loading">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="tool-card-skeleton" />
-              ))}
-            </div>
-          ) : (
-            <div className="tools-grid">
-              {filtered.map((tool, i) => (
-                <ToolCard key={tool.id} tool={tool} delay={i * 50} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="how-it-works">
-        <div className="container">
-          <div className="section-header" style={{ justifyContent: 'center' }}>
-            <div className="text-center">
-              <h2 className="section-title">How It <span className="text-gradient">Works</span></h2>
-              <p className="section-subtitle">Get your tasks done in 3 simple steps</p>
-            </div>
-          </div>
-          <div className="how-it-works__steps">
-            <div className="work-step">
-              <div className="work-step__icon">1</div>
-              <h3>Choose a Tool</h3>
-              <p>Select from over 20+ PDF, image, and document tools available on our platform.</p>
-            </div>
-            <div className="work-step__divider"></div>
-            <div className="work-step">
-              <div className="work-step__icon">2</div>
-              <h3>Upload & Process</h3>
-              <p>Drag and drop your files. Our fast server-side engine will handle the heavy lifting.</p>
-            </div>
-            <div className="work-step__divider"></div>
-            <div className="work-step">
-              <div className="work-step__icon">3</div>
-              <h3>Download Result</h3>
-              <p>Get your processed files instantly. They are auto-deleted after 1 hour for your privacy.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="features-section">
-        <div className="container">
-          <div className="section-header" style={{ justifyContent: 'center' }}>
-            <div className="text-center">
-              <h2 className="section-title">Why Choose <span className="text-gradient">ILoveDocs</span>?</h2>
-              <p className="section-subtitle">Built for speed, security, and simplicity</p>
-            </div>
-          </div>
-          <div className="features-grid">
-            {features.map((f, i) => (
-              <div key={f.title} className="feature-card animate-fade-up" style={{ animationDelay: `${i * 100}ms`, '--feat-color': f.color }}>
-                <div className="feature-card__icon">
-                  {f.icon}
-                </div>
-                <h3 className="feature-card__title">{f.title}</h3>
-                <p className="feature-card__desc">{f.desc}</p>
+            ) : filtered.length === 0 ? (
+              <div className="empty-directory animate-fade-up">
+                <Filter size={48} className="empty-icon" />
+                <h3>No tools found</h3>
+                <p>Try adjusting your search or category filter.</p>
+                <button className="btn btn-glass" onClick={() => { setSearchQuery(''); setCategory('all'); }}>
+                  Clear Filters
+                </button>
               </div>
-            ))}
+            ) : (
+              <div className="tools-grid-home">
+                {filtered.map((tool, i) => (
+                  <ToolCard key={tool.id} tool={tool} delay={i * 30} />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Banner */}
-      <section className="cta-banner">
-        <div className="container">
-          <div className="cta-banner__inner">
-            <div className="cta-banner__glow" />
-            <h2 className="cta-banner__title">
-              Ready to get started?
-            </h2>
-            <p className="cta-banner__subtitle">
-              No account needed. Pick a tool and start converting in seconds.
-            </p>
-            <div className="cta-banner__actions">
-              <Link to="/tools/merge-pdf" className="btn btn-primary btn-lg">
-                Merge PDF Free <ArrowRight size={18} />
-              </Link>
-              <Link to="/tools/compress-pdf" className="btn btn-secondary btn-lg">
-                Compress PDF
-              </Link>
+        {/* Home Content / SEO Articles */}
+        <section className="home-content-body">
+          <div className="container">
+            <div className="dashboard-divider">
+               <div className="divider-line" />
+               <div className="divider-dot" />
+               <div className="divider-line" />
             </div>
+            <ContentSection />
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
     </div>
   );
 }

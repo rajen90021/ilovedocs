@@ -11,6 +11,7 @@ import ToolPage from './pages/ToolPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import LegalPage from './pages/LegalPage';
 import NotFoundPage from './pages/NotFoundPage';
 import './index.css';
 
@@ -21,7 +22,6 @@ function App() {
         <Router>
           <ScrollToTop />
           <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <Navbar />
             <main style={{ flex: 1 }}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
@@ -30,6 +30,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/legal/:policyType" element={<LegalPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </main>
