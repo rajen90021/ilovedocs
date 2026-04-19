@@ -325,55 +325,81 @@ router.post('/monetization-check', async (req, res) => {
 
     const html = await fetchPage(`https://www.youtube.com/watch?v=${videoId}`);
 
+    // Bot detection check
+    if (html.includes('recaptcha') || html.includes('Sign in to confirm you’re not a bot')) {
+      return res.status(403).json({ error: 'YouTube blocked the request. Please try again in a few minutes.' });
+    }
+
+    // Defensive Data Extraction
+    const safeMatch = (regex, index = 1, fallback = 'Unknown') => {
+      try {
+        const m = html.match(regex);
+        return m ? m[index] : fallback;
+      } catch (e) { return fallback; }
+    };
+
     const monetized = html.includes('"adPlacements"') || html.includes('"playerAdParams"') || html.includes('"adBreakHeartbeatParams"');
     const isFamilyFriendly = !html.includes('"ytAgeGate"') && !html.includes('"contentRating":{');
     const isLive = html.includes('"isLiveContent":true');
 
-    const titleMatch = html.match(/<title>(.*?) - YouTube<\/title>/);
-    const titleVal = titleMatch ? titleMatch[1].trim() : 'Unknown Title';
+    const titleVal = safeMatch(/<title>(.*?) - YouTube<\/title>/);
+    const channelName = safeMatch(/"ownerChannelName":"([^"]+)"/, 1, 'Unknown');
+    
+    const rawViews = safeMatch(/"viewCount":"(\d+)"/, 1, '0');
+    const views = parseInt(rawViews) || 0;
 
-    const channelMatch = html.match(/"ownerChannelName":"([^"]+)"/);
-    const viewMatch = html.match(/"viewCount":"(\d+)"/);
-    const views = viewMatch ? parseInt(viewMatch[1]) : 0;
-    const publishMatch = html.match(/"publishDate":"([^"]+)"/);
+    const rawPublishDate = safeMatch(/"publishDate":"([^"]+)"/, 1, null);
+    let publishDateFormatted = 'N/A';
+    if (rawPublishDate) {
+      try {
+        const dateObj = new Date(rawPublishDate);
+        if (!isNaN(dateObj.getTime())) {
+          publishDateFormatted = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+      } catch (e) {
+        console.warn('[monetization-check] Failed to parse date:', rawPublishDate);
+      }
+    }
 
-    // Advanced Extraction: Subscribers and Logo
+    // Advanced Extraction: Subscribers, Logo, Handle
     let subscriberCount = 'N/A';
-    const subMatch = html.match(/"subscriberCountText":\s*\{[^}]*?"simpleText":"([^"]+)"\}/) || html.match(/"label":"([^"]+)\s+subscribers"/);
-    if (subMatch) subscriberCount = subMatch[1];
+    const subMatch = html.match(/"subscriberCountText":\s*\{[^}]*?"simpleText":"([^"]+)"\}/) || 
+                     html.match(/"label":"([^"]+)\s+subscribers"/) ||
+                     html.match(/"subscriberCountText":\s*\{"accessibility":\{"accessibilityData":\{"label":"([^"]+)"\}\}/);
+    if (subMatch) subscriberCount = subMatch[1] || subMatch[2] || 'N/A';
 
     let channelLogo = '';
     const logoMatch = html.match(/"avatar":\s*\{"thumbnails":\s*\[\{"url":"([^"]+)"/);
     if (logoMatch) channelLogo = logoMatch[1].replace(/\\u0026/g, '&');
 
-    let channelHandle = '';
-    const handleMatch = html.match(/"canonicalBaseUrl":"\/(@[^"]+)"/);
-    if (handleMatch) channelHandle = handleMatch[1];
+    const channelHandle = safeMatch(/"canonicalBaseUrl":"\/(@[^"]+)"/, 1, '');
 
-    // Estimated Revenue Calculation (Simplified: $1.5 - $4.0 CPM average)
-    // Formula: (Views / 1000) * Avg CPM
+    // Estimated Revenue Calculation (Industry standard CPM ranges)
     const estMin = ((views / 1000) * 1.5).toFixed(2);
-    const estMax = ((views / 1000) * 4.0).toFixed(2);
+    const estMax = ((views / 1000) * 4.5).toFixed(2);
     const estimatedEarnings = views > 1000 ? `$${estMin} - $${estMax}` : '$0.00';
 
     res.json({
       videoId,
       monetized,
       title: titleVal,
-      channelName: channelMatch ? channelMatch[1] : 'Unknown',
+      channelName,
       channelHandle,
       channelLogo,
       subscriberCount,
       viewCount: views.toLocaleString(),
       estimatedEarnings,
-      publishDate: publishMatch ? new Date(publishMatch[1]).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A',
+      publishDate: publishDateFormatted,
       familyFriendly: isFamilyFriendly,
       isLive,
       verifiedAt: new Date().toISOString(),
     });
   } catch (err) {
-    console.error('[monetization-check]', err.message);
-    res.status(500).json({ error: 'Monetization check failed.' });
+    console.error('❌ [monetization-check] CRITICAL FAILURE:', err.stack);
+    res.status(500).json({ 
+      error: 'Monetization check failed.',
+      debug: process.env.NODE_ENV === 'development' ? err.message : undefined 
+    });
   }
 });
 
