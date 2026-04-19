@@ -20,16 +20,43 @@ function getVideoId(url) {
 
 // ── Helper: Fetch with browser-like User-Agent ───────────────
 async function fetchPage(url) {
-  const { data } = await axios.get(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    },
-    timeout: 20000,
-  });
-  return data;
+  try {
+    const { data } = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+      },
+      timeout: 25000,
+    });
+
+    if (data.includes('recaptcha') || data.includes('Sign in to confirm you’re not a bot')) {
+       const error = new Error('YouTube Blocked (Bot Detection)');
+       error.status = 403;
+       throw error;
+    }
+
+    return data;
+  } catch (err) {
+    if (err.status === 403) throw err;
+    if (err.response?.status === 429) {
+      const error = new Error('YouTube Limit (Too Many Requests)');
+      error.status = 429;
+      throw error;
+    }
+    throw err;
+  }
 }
+
+// ── Helper: Safe Regex Matcher ───────────────
+const safeMatch = (html, regex, index = 1, fallback = 'Unknown') => {
+  try {
+    const m = html.match(regex);
+    return m ? m[index] : fallback;
+  } catch (e) { return fallback; }
+};
 
 // ── Helper: Fetch YouTube transcript (tries multiple methods) ────────
 async function fetchTranscript(videoId) {
@@ -180,12 +207,9 @@ router.post('/tags', async (req, res) => {
 
     const html = await fetchPage(`https://www.youtube.com/watch?v=${videoId}`);
 
-    const titleMatch = html.match(/<title>(.*?) - YouTube<\/title>/);
-    const title = titleMatch ? titleMatch[1].trim() : 'Unknown Title';
+    const title = safeMatch(html, /<title>(.*?) - YouTube<\/title>/, 1, 'Unknown Title').trim();
 
     let tags = [];
-
-    // Main: extract keywords array from the page JSON
     const kwMatch = html.match(/"keywords"\s*:\s*\[([^\]]+)\]/);
     if (kwMatch) {
       tags = (kwMatch[1].match(/"([^"]+)"/g) || []).map(t => t.replace(/"/g, '').trim()).filter(Boolean);
@@ -202,8 +226,11 @@ router.post('/tags', async (req, res) => {
 
     res.json({ videoId, title, tags: [...new Set(tags)] });
   } catch (err) {
-    console.error('[tags]', err.message);
-    res.status(500).json({ error: 'Failed to extract tags. The video may be private.' });
+    if (err.status === 403 || err.status === 429) {
+      return res.status(err.status).json({ error: err.message });
+    }
+    console.error('❌ [tags] FAILURE:', err.stack);
+    res.status(500).json({ error: 'Failed to extract tags. The video may be private or restricted.' });
   }
 });
 
@@ -257,7 +284,10 @@ router.post('/region-check', async (req, res) => {
 
     res.json({ videoId, restricted, restrictions, availableWorldwide: !restricted });
   } catch (err) {
-    console.error('[region-check]', err.message);
+    if (err.status === 403 || err.status === 429) {
+      return res.status(err.status).json({ error: err.message });
+    }
+    console.error('❌ [region-check] FAILURE:', err.stack);
     res.status(500).json({ error: 'Failed to check region restrictions.' });
   }
 });
@@ -414,35 +444,52 @@ router.post('/video-info', async (req, res) => {
 
     const html = await fetchPage(`https://www.youtube.com/watch?v=${videoId}`);
 
-    const titleMatch = html.match(/<title>(.*?) - YouTube<\/title>/);
-    const channelMatch = html.match(/"ownerChannelName":"([^"]+)"/);
-    const channelIdMatch = html.match(/"channelId":"([^"]+)"/);
+    const title = safeMatch(html, /<title>(.*?) - YouTube<\/title>/, 1, 'Unknown').trim();
+    const channel = safeMatch(html, /"ownerChannelName":"([^"]+)"/, 1, 'Unknown');
+    const channelId = safeMatch(html, /"channelId":"([^"]+)"/, 1, null);
+    
     const viewMatch = html.match(/"viewCount":"(\d+)"/);
+    const views = viewMatch ? parseInt(viewMatch[1]).toLocaleString() : 'N/A';
+    
     const descMatch = html.match(/"shortDescription":"((?:[^"\\]|\\.)*)"/);
-    const categoryMatch = html.match(/"category":"([^"]+)"/);
-    const publishMatch = html.match(/"publishDate":"([^"]+)"/);
-    const durationMatch = html.match(/"approxDurationMs":"(\d+)"/);
-    const isPrivate = html.includes('"CONTENT_CHECK_REQUIRED"') || html.includes('"VIDEO_PRIVATE"');
+    const description = descMatch ? descMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').substring(0, 500) : '';
+    
+    const category = safeMatch(html, /"category":"([^"]+)"/, 1, 'N/A');
+    
+    const rawPublish = safeMatch(html, /"publishDate":"([^"]+)"/, 1, null);
+    let publishDate = 'N/A';
+    if (rawPublish) {
+      try {
+        const d = new Date(rawPublish);
+        if (!isNaN(d.getTime())) publishDate = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      } catch (e) {}
+    }
 
+    const durationMatch = html.match(/"approxDurationMs":"(\d+)"/);
     const durationMs = durationMatch ? parseInt(durationMatch[1]) : 0;
     const mins = Math.floor(durationMs / 60000);
     const secs = String(Math.floor((durationMs % 60000) / 1000)).padStart(2, '0');
 
+    const isPrivate = html.includes('"CONTENT_CHECK_REQUIRED"') || html.includes('"VIDEO_PRIVATE"');
+
     res.json({
       videoId,
-      title: titleMatch ? titleMatch[1].trim() : 'Unknown',
-      channel: channelMatch ? channelMatch[1] : 'Unknown',
-      channelId: channelIdMatch ? channelIdMatch[1] : null,
-      views: viewMatch ? parseInt(viewMatch[1]).toLocaleString() : 'N/A',
-      description: descMatch ? descMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').substring(0, 500) : '',
-      category: categoryMatch ? categoryMatch[1] : 'N/A',
-      publishDate: publishMatch ? new Date(publishMatch[1]).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A',
+      title,
+      channel,
+      channelId,
+      views,
+      description,
+      category,
+      publishDate,
       duration: durationMs ? `${mins}:${secs}` : 'N/A',
       thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
       isPrivate,
     });
   } catch (err) {
-    console.error('[video-info]', err.message);
+    if (err.status === 403 || err.status === 429) {
+      return res.status(err.status).json({ error: err.message });
+    }
+    console.error('❌ [video-info] FAILURE:', err.stack);
     res.status(500).json({ error: 'Failed to fetch video info.' });
   }
 });
@@ -551,8 +598,7 @@ router.post('/revenue-calculator', async (req, res) => {
     const html = await fetchPage(targetUrl);
     
     // Extraction for both Video and Channel
-    const titleMatch = html.match(/<title>(.*?) - YouTube<\/title>/);
-    const name = titleMatch ? titleMatch[1].trim() : 'YouTube Creator';
+    const name = safeMatch(html, /<title>(.*?) - YouTube<\/title>/, 1, 'YouTube Creator').trim();
 
     // Better View Extraction (Lifetime views for channels)
     const viewMatch = html.match(/"viewCountText":\s*\{"simpleText":"([\d,]+) views"\}/) || 
@@ -569,7 +615,6 @@ router.post('/revenue-calculator', async (req, res) => {
     const logo = logoMatch ? logoMatch[1].replace(/\\u0026/g, '&') : '';
 
     // Calculation Method
-    // Industry Avg RPM: $1.20 - $5.00
     const rpmMin = 1.20;
     const rpmMax = 5.00;
 
@@ -588,8 +633,6 @@ router.post('/revenue-calculator', async (req, res) => {
       }
     });
 
-    // If it's a channel, views = total lifetime views. We estimate "Current Performance" as 10% of total views per year.
-    // If it's a video, views = video lifetime views.
     const performanceViews = isChannel ? (totalViews * 0.15) : totalViews;
     const projections = calculateEarnings(performanceViews);
 
@@ -605,8 +648,11 @@ router.post('/revenue-calculator', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('[revenue-calculator]', err.message);
-    res.status(500).json({ error: 'Revenue calculation failed. Please check the URL.' });
+    if (err.status === 403 || err.status === 429) {
+      return res.status(err.status).json({ error: err.message });
+    }
+    console.error('❌ [revenue-calculator] FAILURE:', err.stack);
+    res.status(500).json({ error: 'Revenue calculation failed. Please check the URL or try again later.' });
   }
 });
 
