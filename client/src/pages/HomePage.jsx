@@ -6,6 +6,7 @@ import ToolCard from '../components/ToolCard';
 import ContentSection from '../components/ContentSection';
 import SEOHead from '../components/SEOHead';
 import FooterDirectory from '../components/FooterDirectory';
+import AdUnit from '../components/AdUnit';
 import { buildWebsiteJsonLd } from '../data/toolSEO';
 import { API_URL } from '../context/AuthContext';
 import './HomePage.css';
@@ -72,7 +73,9 @@ export default function HomePage() {
               </p>
            </div>
         </section>
-
+        <div className="container" style={{ margin: '20px auto' }}>
+          <AdUnit slot="7438986866" />
+        </div>
         {/* Directory Controls */}
         <section className="directory-section">
           <div className="container">
