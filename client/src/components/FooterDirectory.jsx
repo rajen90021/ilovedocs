@@ -14,6 +14,11 @@ const DIRECTORY = [
       { id: 'yt-seo-score', label: 'YouTube SEO Audit Tool' },
       { id: 'yt-region', label: 'Region Restriction Checker' },
       { id: 'yt-video-info', label: 'YouTube Video Info Viewer' },
+      { id: 'yt-to-doc', label: 'YouTube to Word (Docx)' },
+      { id: 'yt-to-pdf', label: 'YouTube to PDF Converter' },
+      { id: 'yt-to-markdown', label: 'YouTube to Markdown' },
+      { id: 'yt-video-download', label: 'YouTube Video Downloader' },
+      { id: 'yt-audio-extract', label: 'YouTube Audio Extractor' },
     ]
   },
   {

@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
     "@google/generative-ai": "^0.24.1",
     "@napi-rs/canvas": "^0.1.97",
     "archiver": "^7.0.1",

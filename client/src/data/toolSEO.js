@@ -214,6 +214,82 @@ export const TOOL_SEO = {
       'Easily copy the description or save the thumbnail.'
     ]
   },
+  'yt-to-doc': {
+    title: 'YouTube to Word Converter — Convert YT Transcript to Docx',
+    h1: 'Convert YouTube Video to Word Document',
+    h2: 'Professional YouTube to DOCX Converter Online',
+    description: 'Convert any YouTube video transcript into a structured Word document (DOCX). Perfect for taking notes, creating articles, or offline reading.',
+    longDescription: 'Need a written version of a YouTube video? Our YouTube to Word converter extracts the full transcript and formats it into a professional document with timestamps and headers. Ideal for students, researchers, and content creators looking to repurpose video content.',
+    keywords: 'youtube to word, convert youtube to docx, yt transcript to word, youtube video to document, save youtube transcript as word',
+    features: [
+      'Structured formatting with timestamps',
+      'Download as standard .docx file',
+      'High-speed extraction and conversion',
+      'Works with any public video with captions'
+    ],
+    howTo: [
+      'Enter the YouTube video URL.',
+      'Click "Process Content" to fetch the transcript.',
+      'Select "Download as Word" from the results.',
+      'Open the file in Microsoft Word or Google Docs.'
+    ]
+  },
+  'yt-to-pdf': {
+    title: 'YouTube to PDF Converter — Save Video Transcript as PDF',
+    h1: 'Convert YouTube Video to PDF Free',
+    h2: 'Download Clean PDF Transcripts from YouTube',
+    description: 'Save any YouTube video transcript as a clean, readable PDF file. Convert video speech to PDF in one click — no software needed.',
+    longDescription: 'Our YouTube to PDF tool is the fastest way to get a portable version of any video transcript. We extract the captions and format them into a beautiful PDF layout, making it easy to print, share, or store for offline reference.',
+    keywords: 'youtube to pdf, save youtube transcript as pdf, convert video to pdf text, download yt captions pdf',
+    howTo: [
+      'Paste the YouTube video link.',
+      'Wait for the system to process the transcript.',
+      'Click "Download PDF" to save the document.',
+      'Your PDF is ready for offline reading or printing.'
+    ]
+  },
+  'yt-to-markdown': {
+    title: 'YouTube to Markdown — Convert Video to MD for Bloggers',
+    h1: 'Convert YouTube Video to Markdown',
+    h2: 'Clean Markdown Transcripts for Developers & Bloggers',
+    description: 'Convert YouTube transcripts to clean Markdown (MD) format. Ideal for developers, GitHub documentation, and technical blog posts.',
+    longDescription: 'Turn video content into documentation instantly. Our YouTube to Markdown tool extracts captions and formats them with standard MD syntax, including headers and timestamped bullet points. Perfect for technical writers and bloggers.',
+    keywords: 'youtube to markdown, convert yt to md, video transcript markdown, youtube to github documentation',
+    howTo: [
+      'Input the YouTube URL.',
+      'Select the Markdown output option.',
+      'Download the .md file directly.',
+      'Import the content into your blog or documentation site.'
+    ]
+  },
+  'yt-video-download': {
+    title: 'YouTube Video Downloader — Save Videos in MP4 HD Free',
+    h1: 'Download YouTube Videos in HD',
+    h2: 'Fast & Secure YouTube MP4 Downloader',
+    description: 'Download YouTube videos in high-quality MP4 format for free. Save your favorite videos for offline viewing on any device — no registration required.',
+    longDescription: 'Our YouTube Video Downloader is built for speed and quality. We allow you to fetch the highest available resolution for any public video and save it directly to your device as a standard MP4 file. Watch your favorite content anywhere, anytime, without an internet connection.',
+    keywords: 'youtube video downloader, download youtube mp4, save yt video hd, youtube downloader online free',
+    howTo: [
+      'Copy the YouTube video link.',
+      'Paste it into our downloader tool.',
+      'Choose the video quality (HD is recommended).',
+      'Click "Download Video" to save the file.'
+    ]
+  },
+  'yt-audio-extract': {
+    title: 'YouTube Audio Extractor — Convert YouTube to MP3 High Quality',
+    h1: 'Extract Audio from YouTube Videos',
+    h2: 'Convert YouTube to High-Quality MP3/M4A',
+    description: 'Extract high-quality audio from any YouTube video for free. Convert video to MP3 or M4A instantly — perfect for music, podcasts, and lectures.',
+    longDescription: 'Want to listen to a YouTube podcast or lecture on the go? Our Audio Extractor pulls the high-bitrate audio stream from any video and saves it as a standard audio file. Get crystal clear sound without the heavy video data.',
+    keywords: 'youtube audio extractor, convert youtube to mp3, extract music from youtube, save yt audio high quality',
+    howTo: [
+      'Enter the YouTube video URL.',
+      'Click "Extract Audio".',
+      'Wait for the processing to complete.',
+      'Download the MP3 file to your device.'
+    ]
+  },
   'merge-pdf': {
     title: 'Merge PDF Online — Combine PDF Files for Free',
     h1: 'Merge Multiple PDF Files into One',

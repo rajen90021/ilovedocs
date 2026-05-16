@@ -198,6 +198,11 @@ router.get('/', (req, res) => {
     { id: 'yt-seo-score', name: 'SEO Score Checker', description: 'Analyze title, tags, and description for maximum ranking', category: 'youtube', icon: 'bar-chart-3', color: '#EF4444', endpoint: '/api/youtube/seo-score', acceptedTypes: [], multiple: false, type: 'url' },
     { id: 'yt-revenue', name: 'Revenue Calculator', description: 'Estimate monthly and yearly earnings for any channel', category: 'youtube', icon: 'piggy-bank', color: '#EF4444', endpoint: '/api/youtube/revenue-calculator', acceptedTypes: [], multiple: false, type: 'url' },
     { id: 'yt-video-info', name: 'Video Info Viewer', description: 'Get complete metadata, stats and details of any video', category: 'youtube', icon: 'info', color: '#EF4444', endpoint: '/api/youtube/video-info', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-to-doc', name: 'YT to Structured Doc', description: 'Convert YouTube transcript to a professional Word document', category: 'youtube', icon: 'file-text', color: '#EF4444', endpoint: '/api/youtube/to-doc', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-to-pdf', name: 'YouTube to PDF', description: 'Save any YouTube video transcript as a clean PDF file', category: 'youtube', icon: 'file-down', color: '#EF4444', endpoint: '/api/youtube/to-pdf', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-to-markdown', name: 'YouTube to Markdown', description: 'Convert video content into clean Markdown documentation', category: 'youtube', icon: 'file-code', color: '#EF4444', endpoint: '/api/youtube/to-markdown', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-video-download', name: 'Video Download', description: 'Download YouTube videos in high-quality MP4 format', category: 'youtube', icon: 'video', color: '#EF4444', endpoint: '/api/youtube/download-video', acceptedTypes: [], multiple: false, type: 'url' },
+    { id: 'yt-audio-extract', name: 'Audio Extract', description: 'Extract high-quality audio streams as MP3 files', category: 'youtube', icon: 'music', color: '#EF4444', endpoint: '/api/youtube/extract-audio', acceptedTypes: [], multiple: false, type: 'url' },
   ];
   res.json({ tools, total: tools.length });
 });

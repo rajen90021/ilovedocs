@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = require('docx');
+const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 
 // ── Helper: Extract Video ID ─────────────────────────────────
 function getVideoId(url) {
@@ -786,6 +788,205 @@ router.post('/revenue-calculator', async (req, res) => {
       error: err.message || 'Revenue calculation failed.',
       isSecurityLimit: status === 403 || status === 429
     });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 10. YT TO STRUCTURED DOC (WORD)
+// ═══════════════════════════════════════════════════════════
+router.post('/to-doc', async (req, res) => {
+  try {
+    const { url } = req.body;
+    const videoId = getVideoId(url);
+    if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
+
+    const details = await fetchVideoDetails(videoId);
+    const transcript = await fetchTranscript(videoId);
+    
+    if (!transcript) return res.status(400).json({ error: 'Transcript unavailable for this video.' });
+
+    const title = details?.videoDetails?.title || 'YouTube Video Transcript';
+    const channel = details?.videoDetails?.author || 'YouTube Creator';
+
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({
+            text: title,
+            heading: HeadingLevel.HEADING_1,
+            alignment: AlignmentType.CENTER,
+          }),
+          new Paragraph({
+            text: `Channel: ${channel}`,
+            heading: HeadingLevel.HEADING_3,
+            alignment: AlignmentType.CENTER,
+          }),
+          new Paragraph({
+            text: `Source: https://youtube.com/watch?v=${videoId}`,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 },
+          }),
+          ...transcript.map(s => new Paragraph({
+            children: [
+              new TextRun({ text: `[${new Date(s.offset).toISOString().substr(11, 8)}] `, bold: true }),
+              new TextRun(s.text),
+            ],
+            spacing: { after: 200 },
+          })),
+        ],
+      }],
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename=yt_transcript_${videoId}.docx`);
+    res.send(buffer);
+  } catch (err) {
+    console.error('[to-doc]', err.message);
+    res.status(500).json({ error: 'Failed to generate Word document.' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 11. YT TO PDF
+// ═══════════════════════════════════════════════════════════
+router.post('/to-pdf', async (req, res) => {
+  try {
+    const { url } = req.body;
+    const videoId = getVideoId(url);
+    if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
+
+    const transcript = await fetchTranscript(videoId);
+    if (!transcript) return res.status(400).json({ error: 'Transcript unavailable for this video.' });
+
+    const pdfDoc = await PDFDocument.create();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    let page = pdfDoc.addPage([600, 800]);
+    let { width, height } = page.getSize();
+    let y = height - 50;
+
+    page.drawText('YouTube Video Transcript', { x: 50, y, size: 20, font: boldFont });
+    y -= 30;
+    page.drawText(`Video ID: ${videoId}`, { x: 50, y, size: 10, font });
+    y -= 40;
+
+    const fullText = transcript.map(s => s.text).join(' ');
+    const words = fullText.split(' ');
+    let line = '';
+
+    for (const word of words) {
+      if (y < 50) {
+        page = pdfDoc.addPage([600, 800]);
+        y = height - 50;
+      }
+
+      const testLine = line + word + ' ';
+      const lineWidth = font.widthOfTextAtSize(testLine, 11);
+      
+      if (lineWidth > width - 100) {
+        page.drawText(line, { x: 50, y, size: 11, font });
+        line = word + ' ';
+        y -= 15;
+      } else {
+        line = testLine;
+      }
+    }
+    page.drawText(line, { x: 50, y, size: 11, font });
+
+    const pdfBytes = await pdfDoc.save();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=yt_transcript_${videoId}.pdf`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (err) {
+    console.error('[to-pdf]', err.message);
+    res.status(500).json({ error: 'Failed to generate PDF.' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 12. YT TO MARKDOWN
+// ═══════════════════════════════════════════════════════════
+router.post('/to-markdown', async (req, res) => {
+  try {
+    const { url } = req.body;
+    const videoId = getVideoId(url);
+    if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
+
+    const details = await fetchVideoDetails(videoId);
+    const transcript = await fetchTranscript(videoId);
+    if (!transcript) return res.status(400).json({ error: 'Transcript unavailable.' });
+
+    const title = details?.videoDetails?.title || 'YouTube Video';
+    const channel = details?.videoDetails?.author || 'Creator';
+
+    let md = `# ${title}\n\n`;
+    md += `**Channel:** ${channel}\n`;
+    md += `**Source:** [Watch on YouTube](https://youtube.com/watch?v=${videoId})\n\n`;
+    md += `## Transcript\n\n`;
+    
+    transcript.forEach(s => {
+      const time = new Date(s.offset).toISOString().substr(11, 8);
+      md += `**[${time}]** ${s.text}\n\n`;
+    });
+
+    res.setHeader('Content-Type', 'text/markdown');
+    res.setHeader('Content-Disposition', `attachment; filename=yt_transcript_${videoId}.md`);
+    res.send(Buffer.from(md));
+  } catch (err) {
+    console.error('[to-markdown]', err.message);
+    res.status(500).json({ error: 'Failed to generate Markdown.' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 13. VIDEO DOWNLOAD
+// ═══════════════════════════════════════════════════════════
+router.post('/download-video', async (req, res) => {
+  try {
+    const { url } = req.body;
+    const videoId = getVideoId(url);
+    if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
+
+    const info = await ytdl.getInfo(videoId);
+    const format = ytdl.chooseFormat(info.formats, { quality: 'highestvideo', filter: 'audioandvideo' }) || 
+                   ytdl.chooseFormat(info.formats, { quality: 'highest', filter: 'audioandvideo' });
+
+    if (!format) throw new Error('No downloadable format found');
+
+    res.setHeader('Content-Type', 'video/mp4');
+    res.setHeader('Content-Disposition', `attachment; filename=video_${videoId}.mp4`);
+    
+    ytdl(url, { format }).pipe(res);
+  } catch (err) {
+    console.error('[download-video]', err.message);
+    res.status(500).json({ error: 'Failed to download video. YouTube may be blocking this request.' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 14. AUDIO EXTRACT
+// ═══════════════════════════════════════════════════════════
+router.post('/extract-audio', async (req, res) => {
+  try {
+    const { url } = req.body;
+    const videoId = getVideoId(url);
+    if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
+
+    const info = await ytdl.getInfo(videoId);
+    const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
+
+    if (!format) throw new Error('No audio format found');
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Disposition', `attachment; filename=audio_${videoId}.mp3`);
+    
+    ytdl(url, { format }).pipe(res);
+  } catch (err) {
+    console.error('[extract-audio]', err.message);
+    res.status(500).json({ error: 'Failed to extract audio.' });
   }
 });
 

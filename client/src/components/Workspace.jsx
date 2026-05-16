@@ -151,11 +151,30 @@ export default function Workspace({ tool, config }) {
       let isFileDownload = false;
       let downloadFilename = 'downloaded_file';
 
+      const fileReturnTools = ['yt-to-doc', 'yt-to-pdf', 'yt-to-markdown', 'yt-video-download', 'yt-audio-extract'];
+      const shouldReturnFile = fileReturnTools.includes(tool.id);
+
       if (url) {
-        response = await axios.post(`${API_URL}${tool.endpoint}`, { url });
+        if (shouldReturnFile) {
+          response = await axios.post(`${API_URL}${tool.endpoint}`, { url }, { responseType: 'blob' });
+          isFileDownload = true;
+          
+          const contentDisposition = response.headers['content-disposition'];
+          if (contentDisposition && contentDisposition.includes('filename=')) {
+            downloadFilename = contentDisposition.split('filename=')[1].split(';')[0].replace(/"/g, '');
+          } else {
+            if (tool.id === 'yt-to-doc') downloadFilename = 'youtube_transcript.docx';
+            if (tool.id === 'yt-to-pdf') downloadFilename = 'youtube_transcript.pdf';
+            if (tool.id === 'yt-to-markdown') downloadFilename = 'youtube_transcript.md';
+            if (tool.id === 'yt-video-download') downloadFilename = 'youtube_video.mp4';
+            if (tool.id === 'yt-audio-extract') downloadFilename = 'youtube_audio.mp3';
+          }
+        } else {
+          response = await axios.post(`${API_URL}${tool.endpoint}`, { url });
+        }
 
         // Save to recent checks for YouTube tools
-        if (tool.category === 'youtube') {
+        if (tool.category === 'youtube' && !shouldReturnFile) {
           const newCheck = {
             id: Date.now(),
             toolId: tool.id,

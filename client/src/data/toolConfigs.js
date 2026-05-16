@@ -86,6 +86,56 @@ export const TOOL_CONFIGS = {
     placeholder: 'https://www.youtube.com/watch?v=...',
     category: 'youtube'
   },
+  'yt-to-doc': { 
+    id: 'yt-to-doc',
+    name: 'YT to Structured Doc',
+    icon: 'FileText',
+    type: 'url', 
+    acceptedInfo: 'YouTube Video URL',
+    placeholder: 'https://www.youtube.com/watch?v=...',
+    endpoint: '/youtube/to-doc',
+    category: 'youtube'
+  },
+  'yt-to-pdf': { 
+    id: 'yt-to-pdf',
+    name: 'YouTube to PDF',
+    icon: 'FileDown',
+    type: 'url', 
+    acceptedInfo: 'YouTube Video URL',
+    placeholder: 'https://www.youtube.com/watch?v=...',
+    endpoint: '/youtube/to-pdf',
+    category: 'youtube'
+  },
+  'yt-to-markdown': { 
+    id: 'yt-to-markdown',
+    name: 'YouTube to Markdown',
+    icon: 'FileCode',
+    type: 'url', 
+    acceptedInfo: 'YouTube Video URL',
+    placeholder: 'https://www.youtube.com/watch?v=...',
+    endpoint: '/youtube/to-markdown',
+    category: 'youtube'
+  },
+  'yt-video-download': { 
+    id: 'yt-video-download',
+    name: 'Video Download',
+    icon: 'Video',
+    type: 'url', 
+    acceptedInfo: 'YouTube Video URL',
+    placeholder: 'https://www.youtube.com/watch?v=...',
+    endpoint: '/youtube/download-video',
+    category: 'youtube'
+  },
+  'yt-audio-extract': { 
+    id: 'yt-audio-extract',
+    name: 'Audio Extract',
+    icon: 'Music',
+    type: 'url', 
+    acceptedInfo: 'YouTube Video URL',
+    placeholder: 'https://www.youtube.com/watch?v=...',
+    endpoint: '/youtube/extract-audio',
+    category: 'youtube'
+  },
 
   // --- PDF Tools ---
   'merge-pdf': { 
