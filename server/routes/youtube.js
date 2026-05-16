@@ -920,6 +920,8 @@ router.post('/download-video', async (req, res) => {
           const script = new vm.Script(`(function() { ${data.output} })()`);
           const context = vm.createContext({
             Object, JSON, RegExp, Proxy, Symbol, Error, console, Math, String, Number, Array, Date,
+            Uint8Array, Uint16Array, Uint32Array, Int8Array, Int16Array, Int32Array, Float32Array, Float64Array,
+            ArrayBuffer, DataView, Buffer, atob, btoa, URL, URLSearchParams,
             ...args
           });
           const result = script.runInContext(context);
@@ -1079,6 +1081,8 @@ router.post('/video-info', async (req, res) => {
         const script = new vm.Script(`(function() { ${data.output} })()`);
         const context = vm.createContext({
           Object, JSON, RegExp, Proxy, Symbol, Error, console, Math, String, Number, Array, Date,
+          Uint8Array, Uint16Array, Uint32Array, Int8Array, Int16Array, Int32Array, Float32Array, Float64Array,
+          ArrayBuffer, DataView, Buffer, atob, btoa, URL, URLSearchParams,
           ...args
         });
         return script.runInContext(context);
