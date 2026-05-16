@@ -129,12 +129,26 @@ export default function Workspace({ tool, config }) {
       }
     }
 
+    // Build the full URL robustly to avoid double /api
+    const getBaseApi = () => {
+      let base = API_URL || '';
+      if (!base.includes('/api')) base += '/api';
+      return base;
+    };
+
+    const getFullUrl = (endpoint) => {
+      const base = getBaseApi();
+      const cleanEndpoint = endpoint.startsWith('/api') ? endpoint.substring(4) : endpoint;
+      return `${base}${cleanEndpoint}`;
+    };
+
     // Step 1: Fetch Video Info for Video Downloader
     if (tool.id === 'yt-video-download' && !videoInfo) {
       setFetchingInfo(true);
       setProgress(20);
       try {
-        const infoRes = await axios.post(`${API_URL}/api/youtube/video-info`, { url });
+        const fullUrl = getFullUrl('/youtube/video-info');
+        const infoRes = await axios.post(fullUrl, { url });
         setVideoInfo(infoRes.data);
         if (infoRes.data.qualities?.length > 0) {
           setSelectedItag(infoRes.data.qualities[0].itag);
@@ -183,7 +197,8 @@ export default function Workspace({ tool, config }) {
           const payload = { url };
           if (selectedItag) payload.itag = selectedItag;
           
-          response = await axios.post(`${API_URL}/api${tool.endpoint}`, payload, { responseType: 'blob' });
+          const fullUrl = getFullUrl(tool.endpoint);
+          response = await axios.post(fullUrl, payload, { responseType: 'blob' });
           isFileDownload = true;
           
           const contentDisposition = response.headers['content-disposition'];
@@ -199,7 +214,8 @@ export default function Workspace({ tool, config }) {
         } else {
           // Check if tool has an explicit endpoint, otherwise guess from ID
           const endpoint = tool.endpoint || `/youtube/${tool.id.replace('yt-', '')}`;
-          response = await axios.post(`${API_URL}/api${endpoint}`, { url });
+          const fullUrl = getFullUrl(endpoint);
+          response = await axios.post(fullUrl, { url });
         }
 
         // Save to recent checks for YouTube tools
