@@ -962,10 +962,17 @@ router.post('/download-video', async (req, res) => {
       }
     });
 
-    const format = ytdl.chooseFormat(info.formats, { quality: 'highestvideo', filter: 'audioandvideo' }) || 
-                   ytdl.chooseFormat(info.formats, { quality: 'highest', filter: 'audioandvideo' });
+    // More aggressive format selection
+    let format = ytdl.chooseFormat(info.formats, { quality: 'highestvideo', filter: 'audioandvideo' });
+    
+    if (!format) {
+      // Fallback to highest quality video-only if combined is missing (common for HD)
+      // Note: This would normally need merging, but for simplicity we take the best available single stream
+      format = ytdl.chooseFormat(info.formats, { quality: 'highest', filter: (f) => f.container === 'mp4' && f.hasVideo && f.hasAudio }) ||
+               ytdl.chooseFormat(info.formats, { quality: 'highest' });
+    }
 
-    if (!format) throw new Error('No downloadable format found');
+    if (!format) throw new Error('Failed to find any playable formats for this video.');
 
     const cleanTitle = (info.videoDetails.title || 'video').replace(/[^a-z0-9]/gi, '_').toLowerCase();
     res.setHeader('Content-Type', 'video/mp4');

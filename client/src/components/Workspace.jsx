@@ -279,9 +279,9 @@ export default function Workspace({ tool, config }) {
       } else if (status === 500) {
         errorState = {
           isError: true,
-          errorTitle: 'System Error',
-          errorMsg: 'Our processing engine encountered an unexpected hurdle.',
-          suggestion: 'Our team has been notified. Please try another video or check back soon.',
+          errorTitle: 'Processing Error',
+          errorMsg: errorData || 'Our processing engine encountered an unexpected hurdle.',
+          suggestion: 'This specific video might be restricted or protected. Please try another link or check back soon.',
           iconName: 'ServerCrash'
         };
       }
