@@ -954,13 +954,13 @@ router.post('/download-video', async (req, res) => {
     console.log(`[Innertube] Processing Video: ${videoId}`);
 
     const { Innertube, UniversalCache, Platform } = require('youtubei.js');
-    const Jinter = require('jinter').default;
+    const Jintr = require('jintr').default;
     
-    // Core Engine Override: Inject the Jinter "Brain" into the platform shim
+    // Core Engine Override: Inject the Jintr "Brain" into the platform shim
     if (Platform.shim && !Platform.shim.eval_overridden) {
       Platform.shim.eval = (data) => {
-        const jinter = new Jinter(data.output);
-        return jinter.interpret();
+        const jintr = new Jintr(data.output);
+        return jintr.evaluate();
       };
       Platform.shim.eval_overridden = true;
     }
@@ -1023,13 +1023,13 @@ router.post('/extract-audio', async (req, res) => {
     console.log(`[Innertube] Processing Audio: ${videoId}`);
 
     const { Innertube, UniversalCache, Platform } = require('youtubei.js');
-    const Jinter = require('jinter').default;
+    const Jintr = require('jintr').default;
     
     // Core Engine Override
     if (Platform.shim && !Platform.shim.eval_overridden) {
       Platform.shim.eval = (data) => {
-        const jinter = new Jinter(data.output);
-        return jinter.interpret();
+        const jintr = new Jintr(data.output);
+        return jintr.evaluate();
       };
       Platform.shim.eval_overridden = true;
     }
