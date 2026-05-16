@@ -1,0 +1,5 @@
+[Innertube] Audio Error: The server responded with a non 2xx status code
+Stack: Error: The server responded with a non 2xx status code
+    at Module.download (file:///C:/Users/Rajen%20Gupta/Desktop/Personal_projects/ilovedocs/server/node_modules/youtubei.js/dist/src/utils/FormatUtils.js:28:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async C:\Users\Rajen Gupta\Desktop\Personal_projects\ilovedocs\server\routes\youtube.js:1022:23
