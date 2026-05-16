@@ -229,8 +229,19 @@ export default function Workspace({ tool, config }) {
 
       toast.success(`${tool.name} complete!`);
     } catch (err) {
-      const status = err.response?.status;
-      const errorData = err.response?.data?.error || 'Processing failed. Please try again.';
+      let status = err.response?.status;
+      let errorData = err.response?.data?.error || 'Processing failed. Please try again.';
+
+      // Handle cases where responseType is 'blob' but we received a JSON error
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const parsed = JSON.parse(text);
+          errorData = parsed.error || errorData;
+        } catch (e) {
+          // Not JSON, stick with default
+        }
+      }
 
       // Map errors to user-friendly UI states
       let errorState = {
@@ -249,12 +260,12 @@ export default function Workspace({ tool, config }) {
           suggestion: 'Our AI needs transcripts to summarize or extract text. Please try a video with Closed Captions (CC) enabled.',
           iconName: 'FileX'
         };
-      } else if (status === 403 || errorData.includes('blocked the request')) {
+      } else if (status === 403 || errorData.includes('blocked') || errorData.includes('Security Block')) {
         errorState = {
           isError: true,
-          errorTitle: 'Temporary Security Limit',
-          errorMsg: 'YouTube has temporarily restricted our access to this content.',
-          suggestion: 'This usually clears in 5-10 minutes. Please try again shortly or use a different video.',
+          errorTitle: 'YouTube Security Limit',
+          errorMsg: errorData || 'YouTube has temporarily restricted our access to this content.',
+          suggestion: 'This often happens with popular or music-related videos. Please try again in 5-10 minutes or try a different video.',
           iconName: 'ShieldAlert'
         };
       } else if (status === 400 || errorData.includes('Invalid YouTube URL')) {

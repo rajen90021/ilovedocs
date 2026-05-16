@@ -950,19 +950,41 @@ router.post('/download-video', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    const info = await ytdl.getInfo(videoId);
+    // Use consistent browser-like headers for ytdl
+    const info = await ytdl.getInfo(url, {
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://www.youtube.com/',
+        }
+      }
+    });
+
     const format = ytdl.chooseFormat(info.formats, { quality: 'highestvideo', filter: 'audioandvideo' }) || 
                    ytdl.chooseFormat(info.formats, { quality: 'highest', filter: 'audioandvideo' });
 
     if (!format) throw new Error('No downloadable format found');
 
+    const cleanTitle = (info.videoDetails.title || 'video').replace(/[^a-z0-9]/gi, '_').toLowerCase();
     res.setHeader('Content-Type', 'video/mp4');
-    res.setHeader('Content-Disposition', `attachment; filename=video_${videoId}.mp4`);
+    res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.mp4"`);
     
-    ytdl(url, { format }).pipe(res);
+    ytdl(url, { 
+      format,
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+        }
+      }
+    }).pipe(res);
   } catch (err) {
-    console.error('[download-video]', err.message);
-    res.status(500).json({ error: 'Failed to download video. YouTube may be blocking this request.' });
+    console.error('[download-video] Error:', err.message);
+    const isBotBlock = err.message.includes('403') || err.message.includes('sign in');
+    res.status(500).json({ 
+      error: isBotBlock ? 'YouTube Security Block' : 'Processing Failed',
+      message: isBotBlock ? 'YouTube has temporarily restricted this download. Please try again in a few minutes.' : err.message
+    });
   }
 });
 
@@ -975,18 +997,37 @@ router.post('/extract-audio', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    const info = await ytdl.getInfo(videoId);
+    const info = await ytdl.getInfo(url, {
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+        }
+      }
+    });
+
     const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
 
     if (!format) throw new Error('No audio format found');
 
+    const cleanTitle = (info.videoDetails.title || 'audio').replace(/[^a-z0-9]/gi, '_').toLowerCase();
     res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Content-Disposition', `attachment; filename=audio_${videoId}.mp3`);
+    res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.mp3"`);
     
-    ytdl(url, { format }).pipe(res);
+    ytdl(url, { 
+      format,
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+        }
+      }
+    }).pipe(res);
   } catch (err) {
-    console.error('[extract-audio]', err.message);
-    res.status(500).json({ error: 'Failed to extract audio.' });
+    console.error('[extract-audio] Error:', err.message);
+    const isBotBlock = err.message.includes('403') || err.message.includes('sign in');
+    res.status(500).json({ 
+      error: isBotBlock ? 'YouTube Security Block' : 'Extraction Failed',
+      message: isBotBlock ? 'YouTube is currently restricting audio extraction for this video.' : err.message
+    });
   }
 });
 
