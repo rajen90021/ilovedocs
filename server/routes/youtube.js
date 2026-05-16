@@ -913,15 +913,21 @@ router.post('/download-video', async (req, res) => {
     const { Innertube, UniversalCache, Platform } = require('youtubei.js');
     const vm = require('vm');
     
-    // Core Engine Override: Using native Node.js VM (much more powerful than jintr)
+    // Core Engine Override: Using native Node.js VM
     if (Platform.shim && !Platform.shim.eval_overridden) {
       Platform.shim.eval = (data, args) => {
-        const script = new vm.Script(`(function() { ${data.output} })()`);
-        const context = vm.createContext({
-          Object, JSON, RegExp, Proxy, Symbol, Error, console, Math, String, Number, Array, Date,
-          ...args
-        });
-        return script.runInContext(context);
+        try {
+          const script = new vm.Script(`(function() { ${data.output} })()`);
+          const context = vm.createContext({
+            Object, JSON, RegExp, Proxy, Symbol, Error, console, Math, String, Number, Array, Date,
+            ...args
+          });
+          const result = script.runInContext(context);
+          return result;
+        } catch (e) {
+          console.error('[Innertube] Eval Error:', e.message);
+          throw e;
+        }
       };
       Platform.shim.eval_overridden = true;
     }
@@ -942,6 +948,7 @@ router.post('/download-video', async (req, res) => {
       const allFormats = (info.streaming_data?.formats || []).concat(info.streaming_data?.adaptive_formats || []);
       format = allFormats.find(f => f.itag === itagInt);
       downloadOptions = { itag: itagInt };
+      console.log(`[Innertube] Selected Format: itag=${itagInt}, quality=${format?.quality_label}`);
     }
 
     if (!format) {
@@ -1086,8 +1093,10 @@ router.post('/video-info', async (req, res) => {
 
     const info = await yt.getInfo(videoId);
     
-    // Extract available formats
-    const formats = info.streaming_data?.formats.concat(info.streaming_data?.adaptive_formats || []) || [];
+    // Extract available formats (only those with a valid URL or cipher)
+    const formats = (info.streaming_data?.formats || [])
+      .concat(info.streaming_data?.adaptive_formats || [])
+      .filter(f => f.url || f.signature_cipher);
     
     const availableQualities = formats
       .filter(f => f.has_video)
@@ -1099,8 +1108,12 @@ router.post('/video-info', async (req, res) => {
         size: f.content_length ? (parseInt(f.content_length) / (1024 * 1024)).toFixed(2) + ' MB' : 'Unknown',
         fps: f.fps
       }))
-      // Filter out duplicates and low quality if needed, or just sort
-      .sort((a, b) => parseInt(b.quality) - parseInt(a.quality));
+      // Filter out duplicates and sort by quality
+      .sort((a, b) => {
+        const qA = parseInt(a.quality) || 0;
+        const qB = parseInt(b.quality) || 0;
+        return qB - qA;
+      });
 
     res.json({
       title: info.basic_info.title,
