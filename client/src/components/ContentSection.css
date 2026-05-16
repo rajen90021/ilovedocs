@@ -61,6 +61,74 @@
   color: var(--text-soft);
 }
 
+/* SEO Guide Section */
+.seo-guide-section {
+  margin-bottom: 80px;
+  padding: 60px;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 32px;
+  box-shadow: var(--shadow-sm);
+}
+
+.guide-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.guide-icon {
+  color: var(--brand-primary);
+}
+
+.guide-title {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.guide-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+}
+
+.guide-col h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--text-main);
+}
+
+.guide-col p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-soft);
+  margin-bottom: 24px;
+}
+
+.guide-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guide-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  color: var(--text-soft);
+}
+
+.guide-list li svg {
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
 /* FAQ Modern Grid */
 .faq-visual-container {
   padding: 80px 48px;
@@ -158,9 +226,12 @@
 @media (max-width: 1024px) {
   .faq-grid-modern { grid-template-columns: 1fr; }
   .faq-visual-container { padding: 64px 24px; }
+  .guide-content-grid { grid-template-columns: 1fr; gap: 40px; }
+  .seo-guide-section { padding: 40px 24px; }
 }
 
 @media (max-width: 768px) {
   .premium-article-card { padding: 32px 24px; }
   .faq-title { font-size: 1.75rem; }
+  .guide-title { font-size: 1.5rem; }
 }

@@ -20,14 +20,36 @@ function getVideoId(url) {
 
 // ── Helper: Fetch with browser-like User-Agent ───────────────
 async function fetchPage(url) {
+  const userAgents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0'
+  ];
+  const randomUA = userAgents[Math.floor(Math.random() * userAgents.length)];
+
+  // Randomize platform for Sec-Ch-Ua
+  const platforms = ['"Windows"', '"macOS"', '"Linux"'];
+  const platform = platforms[Math.floor(Math.random() * platforms.length)];
+
   try {
     const { data } = await axios.get(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'User-Agent': randomUA,
         'Accept-Language': 'en-US,en;q=0.9',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache',
+        'Referer': 'https://www.google.com/',
+        'Sec-Ch-Ua': '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': platform,
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'cross-site',
+        'Sec-Fetch-User': '?1',
+        'Upgrade-Insecure-Requests': '1',
+        'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+412; ' // Helps bypass some consent gates
       },
       timeout: 25000,
     });
@@ -50,6 +72,113 @@ async function fetchPage(url) {
   }
 }
 
+/**
+ * Fetch video details using the InnerTube API (tries multiple clients for resilience)
+ */
+async function fetchVideoDetails(videoId) {
+  const clients = [
+    {
+      name: 'WEB',
+      url: 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false',
+      body: {
+        context: { client: { clientName: 'WEB', clientVersion: '2.20241015.01.00', hl: 'en', gl: 'US' } },
+        videoId,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+        'X-YouTube-Client-Name': '1',
+        'X-YouTube-Client-Version': '2.20241015.01.00',
+        'Origin': 'https://www.youtube.com',
+      }
+    },
+    {
+      name: 'ANDROID',
+      url: 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false',
+      body: {
+        context: { client: { clientName: 'ANDROID', clientVersion: '19.42.34', hl: 'en', gl: 'US' } },
+        videoId,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'com.google.android.youtube/19.42.34 (Linux; U; Android 14; en_US; Pixel 8 Pro Build/AP1A.240305.019)',
+        'X-YouTube-Client-Name': '3',
+        'X-YouTube-Client-Version': '19.42.34',
+      }
+    }
+  ];
+
+  for (const client of clients) {
+    try {
+      const res = await axios.post(client.url, client.body, { headers: client.headers, timeout: 15000 });
+      if (res.data?.playabilityStatus?.status === 'OK' || res.data?.videoDetails) {
+        return res.data;
+      }
+    } catch (e) {
+      console.error(`[fetchVideoDetails][${client.name}] Error:`, e.message);
+    }
+  }
+  return null;
+}
+
+/**
+ * Fetch channel details using InnerTube API (more robust than scraping)
+ */
+async function fetchChannelDetails(channelUrl) {
+  try {
+    let browseId = null;
+    if (channelUrl.includes('/channel/')) {
+      browseId = channelUrl.split('/channel/')[1].split('/')[0].split('?')[0];
+    } else if (channelUrl.includes('/@')) {
+      browseId = channelUrl.split('/@')[1].split('/')[0].split('?')[0];
+    }
+
+    const body = {
+      context: { client: { clientName: 'WEB', clientVersion: '2.20241015.01.00', hl: 'en', gl: 'US' } },
+      browseId: browseId && !browseId.startsWith('@') ? browseId : undefined,
+      params: 'EghhYm91dC1tZQ%3D%3D',
+    };
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+      'X-YouTube-Client-Name': '1',
+      'X-YouTube-Client-Version': '2.20241015.01.00',
+    };
+
+    const res = await axios.post('https://www.youtube.com/youtubei/v1/browse?prettyPrint=false', body, { headers, timeout: 15000 });
+    const data = res.data;
+
+    // Parse data from browse response
+    const header = data.header?.c4TabbedHeaderRenderer || data.header?.pageHeaderRenderer;
+    const metadata = data.metadata?.channelMetadataRenderer || {};
+    
+    // Extract views and subs from about tab or header
+    let views = 0;
+    let subs = 'N/A';
+    
+    // Try to find the about info in the response
+    const rows = data.contents?.twoColumnBrowseResultsRenderer?.tabs?.find(t => t.tabRenderer?.content)?.tabRenderer?.content?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents?.[0]?.channelAboutMetadataRenderer;
+    
+    if (rows) {
+      views = parseInt((rows.viewCountText?.simpleText || '0').replace(/[^0-9]/g, ''));
+      subs = rows.subscriberCountText?.simpleText || 'N/A';
+    } else if (header) {
+      subs = header.subscriberCountText?.simpleText || 'N/A';
+    }
+
+    return {
+      name: metadata.title || header?.title || 'YouTube Creator',
+      views: views || 100000,
+      subs: subs,
+      logo: metadata.avatar?.thumbnails?.[0]?.url || header?.avatar?.thumbnails?.[0]?.url || ''
+    };
+  } catch (e) {
+    console.error('[fetchChannelDetails] Error:', e.message);
+    return null;
+  }
+}
+
 // ── Helper: Safe Regex Matcher ───────────────
 const safeMatch = (html, regex, index = 1, fallback = 'Unknown') => {
   try {
@@ -60,7 +189,7 @@ const safeMatch = (html, regex, index = 1, fallback = 'Unknown') => {
 
 // ── Helper: Fetch YouTube transcript (tries multiple methods) ────────
 async function fetchTranscript(videoId) {
-  // Method 1: InnerTube WEB client (most reliable for captions)
+  // Method 1: InnerTube API (most reliable for captions)
   const clients = [
     {
       name: 'WEB',
@@ -68,19 +197,41 @@ async function fetchTranscript(videoId) {
         context: {
           client: {
             clientName: 'WEB',
-            clientVersion: '2.20240726.00.00',
+            clientVersion: '2.20241015.01.00',
             hl: 'en',
+            gl: 'US',
+            utcOffsetMinutes: 0,
           },
         },
         videoId,
       },
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
         'X-YouTube-Client-Name': '1',
-        'X-YouTube-Client-Version': '2.20240726.00.00',
+        'X-YouTube-Client-Version': '2.20241015.01.00',
         'Origin': 'https://www.youtube.com',
         'Referer': `https://www.youtube.com/watch?v=${videoId}`,
+      },
+    },
+    {
+      name: 'ANDROID',
+      body: {
+        context: {
+          client: {
+            clientName: 'ANDROID',
+            clientVersion: '19.42.34',
+            hl: 'en',
+            gl: 'US',
+          },
+        },
+        videoId,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'com.google.android.youtube/19.42.34 (Linux; U; Android 14; en_US; Pixel 8 Pro Build/AP1A.240305.019)',
+        'X-YouTube-Client-Name': '3',
+        'X-YouTube-Client-Version': '19.42.34',
       },
     },
     {
@@ -89,17 +240,18 @@ async function fetchTranscript(videoId) {
         context: {
           client: {
             clientName: 'TVHTML5',
-            clientVersion: '7.20240726.19.00',
+            clientVersion: '7.20241015.01.00',
             hl: 'en',
+            gl: 'US',
           },
         },
         videoId,
       },
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (SMART-TV; Linux; Tizen 5.0)',
+        'User-Agent': 'Mozilla/5.0 (SMART-TV; Linux; Tizen 5.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/2.2 Chrome/130.0.0.0 TV Safari/537.36',
         'X-YouTube-Client-Name': '7',
-        'X-YouTube-Client-Version': '7.20240726.19.00',
+        'X-YouTube-Client-Version': '7.20241015.01.00',
       },
     },
   ];
@@ -121,6 +273,8 @@ async function fetchTranscript(videoId) {
         tracks.find(t => t.languageCode === 'en') ||
         tracks.find(t => !t.kind) ||
         tracks[0];
+
+      if (!track || !track.baseUrl) continue;
 
       const captionUrl = track.baseUrl;
       const captionRes = await axios.get(captionUrl, { timeout: 15000 });
@@ -199,38 +353,41 @@ router.post('/thumbnail', async (req, res) => {
 // ═══════════════════════════════════════════════════════════
 // 2. TAGS & SEO EXTRACTOR
 // ═══════════════════════════════════════════════════════════
+// 2. TAGS & SEO EXTRACTOR
+// ═══════════════════════════════════════════════════════════
 router.post('/tags', async (req, res) => {
   try {
     const { url } = req.body;
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    const html = await fetchPage(`https://www.youtube.com/watch?v=${videoId}`);
+    // Use Player API (Hardened against blocks)
+    const details = await fetchVideoDetails(videoId);
+    if (!details) throw new Error('Could not fetch video metadata');
 
-    const title = safeMatch(html, /<title>(.*?) - YouTube<\/title>/, 1, 'Unknown Title').trim();
+    const videoDetails = details.videoDetails || {};
+    const title = videoDetails.title || 'YouTube Video';
+    let tags = videoDetails.keywords || [];
 
-    let tags = [];
-    const kwMatch = html.match(/"keywords"\s*:\s*\[([^\]]+)\]/);
-    if (kwMatch) {
-      tags = (kwMatch[1].match(/"([^"]+)"/g) || []).map(t => t.replace(/"/g, '').trim()).filter(Boolean);
-    }
-
-    // Fallback: meta description hashtags
+    // Fallback if tags missing from API (rare)
     if (tags.length === 0) {
-      const descMatch = html.match(/"shortDescription":"((?:[^"\\]|\\.)*)"/);
-      if (descMatch) {
-        const hashtags = descMatch[1].match(/#\w+/g);
-        if (hashtags) tags = hashtags.map(h => h.slice(1));
-      }
+      try {
+        const html = await fetchPage(`https://www.youtube.com/watch?v=${videoId}`);
+        const kwMatch = html.match(/"keywords"\s*:\s*\[([^\]]+)\]/);
+        if (kwMatch) {
+          tags = (kwMatch[1].match(/"([^"]+)"/g) || []).map(t => t.replace(/"/g, '').trim()).filter(Boolean);
+        }
+      } catch (e) {}
     }
 
     res.json({ videoId, title, tags: [...new Set(tags)] });
   } catch (err) {
-    if (err.status === 403 || err.status === 429) {
-      return res.status(err.status).json({ error: err.message });
-    }
-    console.error('❌ [tags] FAILURE:', err.stack);
-    res.status(500).json({ error: 'Failed to extract tags. The video may be private or restricted.' });
+    console.error('[tags]', err.message);
+    const status = err.status || 500;
+    res.status(status).json({ 
+      error: err.message || 'Failed to extract tags.',
+      isSecurityLimit: status === 403 || status === 429
+    });
   }
 });
 
@@ -259,36 +416,47 @@ router.post('/transcript', async (req, res) => {
 // ═══════════════════════════════════════════════════════════
 // 4. REGION CHECKER
 // ═══════════════════════════════════════════════════════════
+// 4. REGION CHECKER
+// ═══════════════════════════════════════════════════════════
 router.post('/region-check', async (req, res) => {
   try {
     const { url } = req.body;
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    const html = await fetchPage(`https://www.youtube.com/watch?v=${videoId}`);
+    const details = await fetchVideoDetails(videoId);
+    if (!details) throw new Error('Restriction data fetch failed');
 
+    const status = details.playabilityStatus || {};
+    const microformat = details.microformat?.playerMicroformatRenderer || {};
+    
+    // Extract restrictions from microformat or playabilityStatus
     let restrictions = { allowed: [], blocked: [] };
     let restricted = false;
 
-    const restrictionMatch = html.match(/"regionRestriction"\s*:\s*(\{[^}]+\})/);
-    if (restrictionMatch) {
-      try {
-        const raw = restrictionMatch[1];
-        const allowedMatch = raw.match(/"allowed"\s*:\s*\[([^\]]+)\]/);
-        const blockedMatch = raw.match(/"blocked"\s*:\s*\[([^\]]+)\]/);
-        if (allowedMatch) restrictions.allowed = (allowedMatch[1].match(/"([^"]+)"/g) || []).map(c => c.replace(/"/g, ''));
-        if (blockedMatch) restrictions.blocked = (blockedMatch[1].match(/"([^"]+)"/g) || []).map(c => c.replace(/"/g, ''));
-        restricted = restrictions.allowed.length > 0 || restrictions.blocked.length > 0;
-      } catch (e) {}
+    if (microformat.isUnlisted && status.status === 'UNPLAYABLE') {
+       restricted = true; // Often used for region blocks
     }
 
-    res.json({ videoId, restricted, restrictions, availableWorldwide: !restricted });
-  } catch (err) {
-    if (err.status === 403 || err.status === 429) {
-      return res.status(err.status).json({ error: err.message });
+    // Direct extraction from playability status if available
+    if (status.errorScreen?.playerErrorMessageRenderer?.reason?.simpleText?.includes('country')) {
+       restricted = true;
     }
-    console.error('❌ [region-check] FAILURE:', err.stack);
-    res.status(500).json({ error: 'Failed to check region restrictions.' });
+
+    res.json({ 
+      videoId, 
+      restricted, 
+      restrictions, 
+      availableWorldwide: !restricted,
+      reason: status.errorScreen?.playerErrorMessageRenderer?.reason?.simpleText || 'Public'
+    });
+  } catch (err) {
+    console.error('[region-check]', err.message);
+    const status = err.status || 500;
+    res.status(status).json({ 
+      error: err.message || 'Failed to check region restrictions.',
+      isSecurityLimit: status === 403 || status === 429
+    });
   }
 });
 
@@ -301,43 +469,52 @@ router.post('/summarize', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
+    let contentToSummarize = '';
+    let source = 'transcript';
+
+    // ── Attempt 1: Fetch Transcript ──
     const segments = await fetchTranscript(videoId);
-    if (!segments) {
-      return res.status(400).json({ error: 'Cannot summarize: no captions found for this video.' });
+    if (segments && segments.length > 0) {
+      contentToSummarize = segments.map(s => s.text).join(' ').trim();
+    } else {
+      // ── Attempt 2: Fallback to Description ──
+      const details = await fetchVideoDetails(videoId);
+      const description = details?.videoDetails?.shortDescription || '';
+      
+      if (description.length > 150) {
+        contentToSummarize = description;
+        source = 'description';
+      } else {
+        return res.status(400).json({ 
+          error: 'Captions Not Found',
+          message: 'This video does not have transcripts enabled and the description is too short to summarize. Please try a video with Closed Captions (CC) or a longer description.'
+        });
+      }
     }
 
-    const fullText = segments.map(s => s.text).join(' ').trim();
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      // Extractive fallback
-      const sentences = fullText.split(/[.!?]/).filter(s => s.trim().length > 40).slice(0, 8);
-      const summary = '**Key Points (Auto-extracted):**\n\n' + sentences.map(s => `• ${s.trim()}`).join('\n');
-      return res.json({ videoId, summary, aiPowered: false });
+      // Simple extractive summary if no AI key
+      const summary = contentToSummarize.substring(0, 500) + '...';
+      return res.json({ videoId, summary, aiPowered: false, source });
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const prompt = `Summarize this YouTube video transcript in a clear, structured format:
+    const prompt = `Summarize this YouTube video ${source} in a clear, professional, and structured format.
+    Use bold headers and bullet points. Focus on key insights and takeaways.
+    
+    ${source === 'description' ? '(Note: This summary is based on the video description as no transcript was available)' : ''}
 
-**📋 Overview**
-[Brief 2-3 sentence overview]
-
-**🎯 Key Points**
-• [Key insight 1]
-• [Key insight 2]
-• [etc...]
-
-**💡 Takeaways**
-[2-3 actionable takeaways]
-
-Transcript:
-${fullText.substring(0, 14000)}`;
+    Content:
+    ${contentToSummarize.substring(0, 15000)}`;
 
     const result = await model.generateContent(prompt);
     const summary = result.response.text();
-    res.json({ videoId, summary, aiPowered: true });
+    
+    res.json({ videoId, summary, aiPowered: true, source });
   } catch (err) {
     console.error('[summarize]', err.message);
     res.status(500).json({ error: 'Summarization failed. Please try again.' });
@@ -347,92 +524,59 @@ ${fullText.substring(0, 14000)}`;
 // ═══════════════════════════════════════════════════════════
 // 6. MONETIZATION CHECKER
 // ═══════════════════════════════════════════════════════════
+// 6. MONETIZATION CHECKER
+// ═══════════════════════════════════════════════════════════
 router.post('/monetization-check', async (req, res) => {
   try {
     const { url } = req.body;
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    const html = await fetchPage(`https://www.youtube.com/watch?v=${videoId}`);
+    // Use Player API (Robust against blocks)
+    const details = await fetchVideoDetails(videoId);
+    if (!details) throw new Error('Monetization metadata fetch failed');
 
-    // Bot detection check
-    if (html.includes('recaptcha') || html.includes('Sign in to confirm you’re not a bot')) {
-      return res.status(403).json({ error: 'YouTube blocked the request. Please try again in a few minutes.' });
-    }
-
-    // Defensive Data Extraction
-    const safeMatch = (regex, index = 1, fallback = 'Unknown') => {
-      try {
-        const m = html.match(regex);
-        return m ? m[index] : fallback;
-      } catch (e) { return fallback; }
-    };
-
-    const monetized = html.includes('"adPlacements"') || html.includes('"playerAdParams"') || html.includes('"adBreakHeartbeatParams"');
-    const isFamilyFriendly = !html.includes('"ytAgeGate"') && !html.includes('"contentRating":{');
-    const isLive = html.includes('"isLiveContent":true');
-
-    const titleVal = safeMatch(/<title>(.*?) - YouTube<\/title>/);
-    const channelName = safeMatch(/"ownerChannelName":"([^"]+)"/, 1, 'Unknown');
+    const videoDetails = details.videoDetails || {};
+    const microformat = details.microformat?.playerMicroformatRenderer || {};
     
-    const rawViews = safeMatch(/"viewCount":"(\d+)"/, 1, '0');
-    const views = parseInt(rawViews) || 0;
+    // Robust Monetization Detection Logic
+    const monetized = details.adPlacementRenderer || 
+                     details.monetizationSettings?.allowedAds || 
+                     JSON.stringify(details).includes('yt_ad_');
+    
+    const views = parseInt(videoDetails.viewCount || 0);
+    const isFamilyFriendly = !details.playabilityStatus?.status?.includes('UNPLAYABLE') && !JSON.stringify(details).includes('FAMILY_FRIENDLY_FALSE');
 
-    const rawPublishDate = safeMatch(/"publishDate":"([^"]+)"/, 1, null);
-    let publishDateFormatted = 'N/A';
-    if (rawPublishDate) {
-      try {
-        const dateObj = new Date(rawPublishDate);
-        if (!isNaN(dateObj.getTime())) {
-          publishDateFormatted = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        }
-      } catch (e) {
-        console.warn('[monetization-check] Failed to parse date:', rawPublishDate);
-      }
-    }
-
-    // Advanced Extraction: Subscribers, Logo, Handle
-    let subscriberCount = 'N/A';
-    const subMatch = html.match(/"subscriberCountText":\s*\{[^}]*?"simpleText":"([^"]+)"\}/) || 
-                     html.match(/"label":"([^"]+)\s+subscribers"/) ||
-                     html.match(/"subscriberCountText":\s*\{"accessibility":\{"accessibilityData":\{"label":"([^"]+)"\}\}/);
-    if (subMatch) subscriberCount = subMatch[1] || subMatch[2] || 'N/A';
-
-    let channelLogo = '';
-    const logoMatch = html.match(/"avatar":\s*\{"thumbnails":\s*\[\{"url":"([^"]+)"/);
-    if (logoMatch) channelLogo = logoMatch[1].replace(/\\u0026/g, '&');
-
-    const channelHandle = safeMatch(/"canonicalBaseUrl":"\/(@[^"]+)"/, 1, '');
-
-    // Estimated Revenue Calculation (Industry standard CPM ranges)
+    // Revenue Projections
     const estMin = ((views / 1000) * 1.5).toFixed(2);
     const estMax = ((views / 1000) * 4.5).toFixed(2);
-    const estimatedEarnings = views > 1000 ? `$${estMin} - $${estMax}` : '$0.00';
 
     res.json({
       videoId,
-      monetized,
-      title: titleVal,
-      channelName,
-      channelHandle,
-      channelLogo,
-      subscriberCount,
+      monetized: !!monetized,
+      title: videoDetails.title || 'YouTube Video',
+      channelName: videoDetails.author || 'Unknown Creator',
+      channelHandle: microformat.ownerProfileUrl ? ('@' + microformat.ownerProfileUrl.split('/@')[1]) : 'Public Channel',
+      channelLogo: microformat.thumbnail?.thumbnails?.[0]?.url || '',
+      subscriberCount: 'N/A (Use Channel Tool)',
       viewCount: views.toLocaleString(),
-      estimatedEarnings,
-      publishDate: publishDateFormatted,
+      estimatedEarnings: views > 1000 ? `$${estMin} - $${estMax}` : '$0.00',
+      publishDate: microformat.publishDate ? new Date(microformat.publishDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A',
       familyFriendly: isFamilyFriendly,
-      isLive,
       verifiedAt: new Date().toISOString(),
     });
   } catch (err) {
-    console.error('❌ [monetization-check] CRITICAL FAILURE:', err.stack);
-    res.status(500).json({ 
-      error: 'Monetization check failed.',
-      debug: process.env.NODE_ENV === 'development' ? err.message : undefined 
+    console.error('[monetization-check]', err.message);
+    const status = err.status || 500;
+    res.status(status).json({ 
+      error: err.message || 'Monetization check failed.',
+      isSecurityLimit: status === 403 || status === 429
     });
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// 7. VIDEO INFO VIEWER
 // ═══════════════════════════════════════════════════════════
 // 7. VIDEO INFO VIEWER
 // ═══════════════════════════════════════════════════════════
@@ -442,58 +586,42 @@ router.post('/video-info', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    const html = await fetchPage(`https://www.youtube.com/watch?v=${videoId}`);
+    // Use Player API (Robust against blocks)
+    const details = await fetchVideoDetails(videoId);
+    if (!details) throw new Error('Video metadata fetch failed');
 
-    const title = safeMatch(html, /<title>(.*?) - YouTube<\/title>/, 1, 'Unknown').trim();
-    const channel = safeMatch(html, /"ownerChannelName":"([^"]+)"/, 1, 'Unknown');
-    const channelId = safeMatch(html, /"channelId":"([^"]+)"/, 1, null);
-    
-    const viewMatch = html.match(/"viewCount":"(\d+)"/);
-    const views = viewMatch ? parseInt(viewMatch[1]).toLocaleString() : 'N/A';
-    
-    const descMatch = html.match(/"shortDescription":"((?:[^"\\]|\\.)*)"/);
-    const description = descMatch ? descMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').substring(0, 500) : '';
-    
-    const category = safeMatch(html, /"category":"([^"]+)"/, 1, 'N/A');
-    
-    const rawPublish = safeMatch(html, /"publishDate":"([^"]+)"/, 1, null);
-    let publishDate = 'N/A';
-    if (rawPublish) {
-      try {
-        const d = new Date(rawPublish);
-        if (!isNaN(d.getTime())) publishDate = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-      } catch (e) {}
-    }
+    const videoDetails = details.videoDetails || {};
+    const microformat = details.microformat?.playerMicroformatRenderer || {};
 
-    const durationMatch = html.match(/"approxDurationMs":"(\d+)"/);
-    const durationMs = durationMatch ? parseInt(durationMatch[1]) : 0;
-    const mins = Math.floor(durationMs / 60000);
-    const secs = String(Math.floor((durationMs % 60000) / 1000)).padStart(2, '0');
-
-    const isPrivate = html.includes('"CONTENT_CHECK_REQUIRED"') || html.includes('"VIDEO_PRIVATE"');
+    const durationSec = parseInt(videoDetails.lengthSeconds || 0);
+    const mins = Math.floor(durationSec / 60);
+    const secs = String(durationSec % 60).padStart(2, '0');
 
     res.json({
       videoId,
-      title,
-      channel,
-      channelId,
-      views,
-      description,
-      category,
-      publishDate,
-      duration: durationMs ? `${mins}:${secs}` : 'N/A',
+      title: videoDetails.title || 'YouTube Video',
+      channel: videoDetails.author || 'Unknown Channel',
+      channelId: videoDetails.channelId || null,
+      views: parseInt(videoDetails.viewCount || 0).toLocaleString(),
+      description: (videoDetails.shortDescription || '').substring(0, 1000),
+      category: microformat.category || 'N/A',
+      publishDate: microformat.publishDate || 'N/A',
+      duration: `${mins}:${secs}`,
       thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-      isPrivate,
+      isPrivate: details.playabilityStatus?.status !== 'OK',
     });
   } catch (err) {
-    if (err.status === 403 || err.status === 429) {
-      return res.status(err.status).json({ error: err.message });
-    }
-    console.error('❌ [video-info] FAILURE:', err.stack);
-    res.status(500).json({ error: 'Failed to fetch video info.' });
+    console.error('[video-info]', err.message);
+    const status = err.status || 500;
+    res.status(status).json({ 
+      error: err.message || 'Failed to fetch video info.',
+      isSecurityLimit: status === 403 || status === 429
+    });
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// 8. SEO SCORE CHECKER
 // ═══════════════════════════════════════════════════════════
 // 8. SEO SCORE CHECKER
 // ═══════════════════════════════════════════════════════════
@@ -503,55 +631,48 @@ router.post('/seo-score', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    const html = await fetchPage(`https://www.youtube.com/watch?v=${videoId}`);
+    const details = await fetchVideoDetails(videoId);
+    if (!details) throw new Error('SEO data fetch failed');
 
-    // Data Extraction
-    const titleMatch = html.match(/<title>(.*?) - YouTube<\/title>/);
-    const title = titleMatch ? titleMatch[1].trim() : '';
-
-    const descMatch = html.match(/"shortDescription":"((?:[^"\\]|\\.)*)"/);
-    const description = descMatch ? descMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : '';
-
-    let tags = [];
-    const kwMatch = html.match(/"keywords"\s*:\s*\[([^\]]+)\]/);
-    if (kwMatch) {
-      tags = (kwMatch[1].match(/"([^"]+)"/g) || []).map(t => t.replace(/"/g, '').trim()).filter(Boolean);
-    }
+    const videoDetails = details.videoDetails || {};
+    const title = videoDetails.title || '';
+    const description = videoDetails.shortDescription || '';
+    const tags = videoDetails.keywords || [];
 
     // Scoring Algorithm (0-100)
     let score = 0;
-    const details = [];
+    const auditDetails = [];
 
     // 1. Title Score (25 pts)
     const titleLen = title.length;
     if (titleLen >= 30 && titleLen <= 70) {
       score += 25;
-      details.push({ label: 'Title Length', status: 'perfect', text: 'Excellent! Your title length is optimized for search (30-70 chars).' });
+      auditDetails.push({ label: 'Title Length', status: 'perfect', text: 'Excellent! Your title length is optimized for search (30-70 chars).' });
     } else if (titleLen > 0) {
       score += 15;
-      details.push({ label: 'Title Length', status: 'warning', text: 'Your title could be more descriptive. Aim for 30-70 characters.' });
+      auditDetails.push({ label: 'Title Length', status: 'warning', text: 'Your title could be more descriptive. Aim for 30-70 characters.' });
     }
 
     // 2. Tags Score (25 pts)
     const tagCount = tags.length;
     if (tagCount >= 15) {
       score += 25;
-      details.push({ label: 'Tag Count', status: 'perfect', text: `${tagCount} tags found. Great job using many relevant tags!` });
+      auditDetails.push({ label: 'Tag Count', status: 'perfect', text: `${tagCount} tags found. Great job using many relevant tags!` });
     } else if (tagCount >= 5) {
       score += 15;
-      details.push({ label: 'Tag Count', status: 'warning', text: `Only ${tagCount} tags found. Adding more tags helps YouTube categorize your video.` });
+      auditDetails.push({ label: 'Tag Count', status: 'warning', text: `Only ${tagCount} tags found. Adding more tags helps YouTube categorize your video.` });
     } else {
-      details.push({ label: 'Tag Count', status: 'danger', text: 'No hidden tags found. This limits your video discoverability.' });
+      auditDetails.push({ label: 'Tag Count', status: 'danger', text: 'No hidden tags found. This limits your video discoverability.' });
     }
 
     // 3. Description Score (25 pts)
     const descLen = description.length;
     if (descLen > 500) {
       score += 25;
-      details.push({ label: 'Description Richness', status: 'perfect', text: 'Rich description! You provided plenty of context for search engines.' });
+      auditDetails.push({ label: 'Description Richness', status: 'perfect', text: 'Rich description! You provided plenty of context for search engines.' });
     } else if (descLen > 100) {
       score += 15;
-      details.push({ label: 'Description Richness', status: 'warning', text: 'Your description is a bit short. Add more keywords and info.' });
+      auditDetails.push({ label: 'Description Richness', status: 'warning', text: 'Your description is a bit short. Add more keywords and info.' });
     }
 
     // 4. Keyword Synergy (25 pts)
@@ -559,23 +680,27 @@ router.post('/seo-score', async (req, res) => {
     const keywordMatchCount = titleWords.filter(w => description.toLowerCase().includes(w)).length;
     if (keywordMatchCount >= 3) {
       score += 25;
-      details.push({ label: 'Keyword Synergy', status: 'perfect', text: 'High synergy! Your title keywords are well-distributed in the description.' });
+      auditDetails.push({ label: 'Keyword Synergy', status: 'perfect', text: 'High synergy! Your title keywords are well-distributed in the description.' });
     } else if (keywordMatchCount > 0) {
       score += 10;
-      details.push({ label: 'Keyword Synergy', status: 'warning', text: 'Weak synergy. Try including more title keywords in the first 2 lines of description.' });
+      auditDetails.push({ label: 'Keyword Synergy', status: 'warning', text: 'Weak synergy. Try including more title keywords in the first 2 lines of description.' });
     }
 
     res.json({
       videoId,
       title,
       score,
-      details,
+      details: auditDetails,
       recommendation: score > 80 ? 'Excellent SEO! Your video is highly optimized.' : 'Needs Improvement. Focus on adding more descriptive tags and expanding your description.',
     });
 
   } catch (err) {
     console.error('[seo-score]', err.message);
-    res.status(500).json({ error: 'SEO scoring failed.' });
+    const status = err.status || 500;
+    res.status(status).json({ 
+      error: err.message || 'SEO scoring failed.',
+      isSecurityLimit: status === 403 || status === 429
+    });
   }
 });
 
@@ -590,47 +715,54 @@ router.post('/revenue-calculator', async (req, res) => {
     const isChannel = url.includes('/@') || url.includes('/channel/') || url.includes('/c/');
     const videoId = !isChannel ? getVideoId(url) : null;
 
-    let targetUrl = url;
-    if (isChannel && !url.includes('/about')) {
-      targetUrl = url.endsWith('/') ? `${url}about` : `${url}/about`;
+    let name = 'YouTube Creator';
+    let totalViews = 100000;
+    let subs = 'N/A';
+    let logo = '';
+
+    if (videoId) {
+      // ── Video Mode (Player API) ──
+      const details = await fetchVideoDetails(videoId);
+      if (details) {
+        const videoDetails = details.videoDetails || {};
+        name = videoDetails.title || name;
+        totalViews = parseInt(videoDetails.viewCount || 100000);
+        logo = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        subs = videoDetails.author || 'YouTube Creator';
+      } else {
+        throw new Error('Could not fetch video data. YouTube may be temporarily restricting access.');
+      }
+    } else {
+      // ── Channel Mode (Use Browse API) ──
+      const details = await fetchChannelDetails(url);
+      if (details) {
+        name = details.name;
+        totalViews = details.views;
+        subs = details.subs;
+        logo = details.logo;
+      } else {
+        // Fallback Scrape (Last resort)
+        try {
+          const html = await fetchPage(url.includes('/about') ? url : `${url.split('?')[0]}/about`);
+          name = safeMatch(html, /<title>(.*?) - YouTube<\/title>/, 1, 'YouTube Creator').trim();
+          const viewMatch = html.match(/"viewCountText":\s*\{"simpleText":"([\d,]+) views"\}/);
+          if (viewMatch) totalViews = parseInt(viewMatch[1].replace(/,/g, ''));
+          const subMatch = html.match(/"subscriberCountText":\s*\{[^}]*?"simpleText":"([^"]+)"\}/);
+          if (subMatch) subs = subMatch[1];
+        } catch (e) {
+          console.warn('[revenue-calc] All methods failed');
+        }
+      }
     }
-
-    const html = await fetchPage(targetUrl);
-    
-    // Extraction for both Video and Channel
-    const name = safeMatch(html, /<title>(.*?) - YouTube<\/title>/, 1, 'YouTube Creator').trim();
-
-    // Better View Extraction (Lifetime views for channels)
-    const viewMatch = html.match(/"viewCountText":\s*\{"simpleText":"([\d,]+) views"\}/) || 
-                       html.match(/"viewCount":"(\d+)"/) ||
-                       html.match(/"label":"([\d,]+) views"/);
-    const totalViews = viewMatch ? parseInt(viewMatch[1].replace(/,/g, '')) : 100000;
-
-    const subMatch = html.match(/"subscriberCountText":\s*\{[^}]*?"simpleText":"([^"]+)"\}/) || 
-                     html.match(/"label":"([^"]+)\s+subscribers"/) ||
-                     html.match(/"subscriberCountText":\s*\{"accessibility":\{"accessibilityData":\{"label":"([^"]+)"\}\}/);
-    const subs = subMatch ? (subMatch[1] || subMatch[2]) : 'N/A';
-
-    const logoMatch = html.match(/"avatar":\s*\{"thumbnails":\s*\[\{"url":"([^"]+)"/);
-    const logo = logoMatch ? logoMatch[1].replace(/\\u0026/g, '&') : '';
 
     // Calculation Method
     const rpmMin = 1.20;
     const rpmMax = 5.00;
 
-    const calculateEarnings = (views) => ({
-      daily: {
-        min: ((views / 365 / 1000) * rpmMin).toFixed(2),
-        max: ((views / 365 / 1000) * rpmMax).toFixed(2),
-      },
-      monthly: {
-        min: ((views / 12 / 1000) * rpmMin).toFixed(2),
-        max: ((views / 12 / 1000) * rpmMax).toFixed(2),
-      },
-      yearly: {
-        min: ((views / 1000) * rpmMin).toFixed(2),
-        max: ((views / 1000) * rpmMax).toFixed(2),
-      }
+    const calculateEarnings = (v) => ({
+      daily: { min: ((v / 365 / 1000) * rpmMin).toFixed(2), max: ((v / 365 / 1000) * rpmMax).toFixed(2) },
+      monthly: { min: ((v / 12 / 1000) * rpmMin).toFixed(2), max: ((v / 12 / 1000) * rpmMax).toFixed(2) },
+      yearly: { min: ((v / 1000) * rpmMin).toFixed(2), max: ((v / 1000) * rpmMax).toFixed(2) }
     });
 
     const performanceViews = isChannel ? (totalViews * 0.15) : totalViews;
@@ -648,11 +780,12 @@ router.post('/revenue-calculator', async (req, res) => {
     });
 
   } catch (err) {
-    if (err.status === 403 || err.status === 429) {
-      return res.status(err.status).json({ error: err.message });
-    }
-    console.error('❌ [revenue-calculator] FAILURE:', err.stack);
-    res.status(500).json({ error: 'Revenue calculation failed. Please check the URL or try again later.' });
+    console.error('[revenue-calculator]', err.message);
+    const status = err.status || 500;
+    res.status(status).json({ 
+      error: err.message || 'Revenue calculation failed.',
+      isSecurityLimit: status === 403 || status === 429
+    });
   }
 });
 

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import * as Icons from 'lucide-react';
+import { motion } from 'framer-motion';
 import './ToolCard.css';
 
 const categoryLabels = {
@@ -22,27 +23,34 @@ export default function ToolCard({ tool, delay = 0 }) {
   const IconComponent = Icons[toPascalCase(tool.icon)] || Icons.FileText;
 
   return (
-    <Link
-      to={`/tools/${tool.id}`}
-      title={`Use ${tool.name} tool`}
-      className="tool-card animate-fade-up"
-      style={{ animationDelay: `${delay}ms`, '--tool-color': tool.color }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: delay / 1000 }}
+      whileHover={{ y: -8 }}
     >
-      <div className="tool-card__icon-wrap">
-        <IconComponent size={26} className="tool-card__icon" />
-        <div className="tool-card__icon-glow" />
-      </div>
-      <div className="tool-card__content">
-        <div className="tool-card__header">
-          <h3 className="tool-card__name">{tool.name}</h3>
-          <span className={`badge ${categoryColors[tool.category] || 'badge-purple'}`}>
-            {categoryLabels[tool.category] || tool.category}
-          </span>
+      <Link
+        to={`/tools/${tool.id}`}
+        title={`Use ${tool.name} tool`}
+        className="tool-card"
+        style={{ '--tool-color': tool.color }}
+      >
+        <div className="tool-card__icon-wrap">
+          <IconComponent size={26} className="tool-card__icon" />
+          <div className="tool-card__icon-glow" />
         </div>
-        <p className="tool-card__description">{tool.description}</p>
-      </div>
-      <div className="tool-card__arrow">→</div>
-    </Link>
+        <div className="tool-card__content">
+          <div className="tool-card__header">
+            <h3 className="tool-card__name">{tool.name}</h3>
+            <span className={`badge ${categoryColors[tool.category] || 'badge-purple'}`}>
+              {categoryLabels[tool.category] || tool.category}
+            </span>
+          </div>
+          <p className="tool-card__description">{tool.description}</p>
+        </div>
+        <div className="tool-card__arrow">→</div>
+      </Link>
+    </motion.div>
   );
 }
 

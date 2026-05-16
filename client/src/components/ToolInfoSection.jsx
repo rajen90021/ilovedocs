@@ -9,8 +9,12 @@ import {
 } from 'lucide-react';
 import './ToolInfoSection.css';
 
-export default function ToolInfoSection({ seoData, toolName }) {
+export default function ToolInfoSection({ seoData, toolName, allTools = [], category, currentToolId }) {
   if (!seoData) return null;
+
+  const relatedTools = allTools
+    .filter(t => t.category === category && t.id !== currentToolId)
+    .slice(0, 4);
 
   return (
     <section className="tool-info-section animate-fade-up">
@@ -31,24 +35,39 @@ export default function ToolInfoSection({ seoData, toolName }) {
               <div className="feature-icon red"><Zap size={20} /></div>
               <div className="feature-text">
                 <strong>Lightning Fast</strong>
-                <p>Process your files in seconds with nuestra optimized servers.</p>
+                <p>Process your files in seconds with our optimized high-speed servers.</p>
               </div>
            </div>
            <div className="feature-item">
               <div className="feature-icon blue"><Lock size={20} /></div>
               <div className="feature-text">
                 <strong>100% Secure</strong>
-                <p>Advanced encryption ensures your data remains private.</p>
+                <p>Advanced end-to-end encryption ensures your data remains private.</p>
               </div>
            </div>
            <div className="feature-item">
               <div className="feature-icon green"><ShieldCheck size={20} /></div>
               <div className="feature-text">
-                <strong>No Signup</strong>
-                <p>Use all utilities immediately without an account.</p>
+                <strong>No Signup Required</strong>
+                <p>Use all utilities immediately. No email or account creation needed.</p>
               </div>
            </div>
         </div>
+
+        {/* Tool Specific Features (SEO Boost) */}
+        {seoData.features && (
+          <div className="tool-features-box">
+            <h3 className="section-subtitle">Core Features & Benefits</h3>
+            <div className="features-list-premium">
+              {seoData.features.map((feature, i) => (
+                <div key={i} className="feature-check-item">
+                  <CheckCircle2 className="check-icon" size={20} />
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* How To Steps */}
         {seoData.howTo && (
@@ -86,6 +105,24 @@ export default function ToolInfoSection({ seoData, toolName }) {
                  </div>
                ))}
              </div>
+          </div>
+        )}
+
+        {/* Related Tools Section for SEO Interlinking */}
+        {relatedTools.length > 0 && (
+          <div className="related-tools-box">
+            <h3 className="section-subtitle">Related {category.toUpperCase()} Tools</h3>
+            <div className="related-grid">
+              {relatedTools.map(t => (
+                <a key={t.id} href={`/tools/${t.id}`} className="related-tool-card">
+                  <div className="related-icon" style={{ backgroundColor: t.color }}>
+                     <CheckCircle2 size={14} color="white" />
+                  </div>
+                  <span>{t.name}</span>
+                  <ArrowRight size={14} className="hover-arrow" />
+                </a>
+              ))}
+            </div>
           </div>
         )}
       </div>
