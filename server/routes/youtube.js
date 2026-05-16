@@ -932,10 +932,25 @@ router.post('/download-video', async (req, res) => {
     });
     
     const info = await yt.getInfo(videoId);
-    const downloadOptions = itag ? { itag } : { type: 'video+audio', quality: 'best', format: 'mp4' };
-    const format = info.chooseFormat(downloadOptions);
+    
+    // Explicitly find the format by itag if provided
+    let format;
+    let downloadOptions;
 
-    if (!format) throw new Error('Requested quality not available.');
+    if (itag) {
+      const itagInt = parseInt(itag);
+      const allFormats = (info.streaming_data?.formats || []).concat(info.streaming_data?.adaptive_formats || []);
+      format = allFormats.find(f => f.itag === itagInt);
+      downloadOptions = { itag: itagInt };
+    }
+
+    if (!format) {
+      // Fallback or default
+      downloadOptions = { type: 'video+audio', quality: 'best', format: 'mp4' };
+      format = info.chooseFormat(downloadOptions);
+    }
+
+    if (!format) throw new Error('Requested video quality not found or restricted.');
 
     const cleanTitle = (info.basic_info.title || 'video').replace(/[^a-z0-9]/gi, '_').toLowerCase();
     res.setHeader('Content-Type', 'video/mp4');
