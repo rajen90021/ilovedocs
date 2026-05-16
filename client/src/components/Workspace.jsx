@@ -134,7 +134,7 @@ export default function Workspace({ tool, config }) {
       setFetchingInfo(true);
       setProgress(20);
       try {
-        const infoRes = await axios.post(`${API_URL}/youtube/video-info`, { url });
+        const infoRes = await axios.post(`${API_URL}/api/youtube/video-info`, { url });
         setVideoInfo(infoRes.data);
         if (infoRes.data.qualities?.length > 0) {
           setSelectedItag(infoRes.data.qualities[0].itag);
@@ -183,7 +183,7 @@ export default function Workspace({ tool, config }) {
           const payload = { url };
           if (selectedItag) payload.itag = selectedItag;
           
-          response = await axios.post(`${API_URL}${tool.endpoint}`, payload, { responseType: 'blob' });
+          response = await axios.post(`${API_URL}/api${tool.endpoint}`, payload, { responseType: 'blob' });
           isFileDownload = true;
           
           const contentDisposition = response.headers['content-disposition'];
@@ -197,7 +197,9 @@ export default function Workspace({ tool, config }) {
             if (tool.id === 'yt-audio-extract') downloadFilename = 'youtube_audio.mp3';
           }
         } else {
-          response = await axios.post(`${API_URL}${tool.endpoint}`, { url });
+          // Check if tool has an explicit endpoint, otherwise guess from ID
+          const endpoint = tool.endpoint || `/youtube/${tool.id.replace('yt-', '')}`;
+          response = await axios.post(`${API_URL}/api${endpoint}`, { url });
         }
 
         // Save to recent checks for YouTube tools
