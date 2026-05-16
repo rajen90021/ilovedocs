@@ -956,11 +956,12 @@ router.post('/download-video', async (req, res) => {
     const { Innertube, UniversalCache, Platform } = require('youtubei.js');
     const Jintr = require('jintr').default;
     
-    // Core Engine Override: Inject the Jintr "Brain" into the platform shim
+    // Core Engine Override: Correct usage with IIFE wrapping for results
     if (Platform.shim && !Platform.shim.eval_overridden) {
       Platform.shim.eval = (data) => {
-        const jintr = new Jintr(data.output);
-        return jintr.evaluate();
+        const jintr = new Jintr();
+        // Wrap in IIFE to handle top-level returns and capture results
+        return jintr.evaluate(`(function() { ${data.output} })()`);
       };
       Platform.shim.eval_overridden = true;
     }
@@ -1028,8 +1029,8 @@ router.post('/extract-audio', async (req, res) => {
     // Core Engine Override
     if (Platform.shim && !Platform.shim.eval_overridden) {
       Platform.shim.eval = (data) => {
-        const jintr = new Jintr(data.output);
-        return jintr.evaluate();
+        const jintr = new Jintr();
+        return jintr.evaluate(`(function() { ${data.output} })()`);
       };
       Platform.shim.eval_overridden = true;
     }
