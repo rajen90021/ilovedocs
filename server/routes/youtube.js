@@ -913,7 +913,7 @@ router.post('/download-video', async (req, res) => {
     const { Innertube, UniversalCache, Platform, Parser } = require('youtubei.js');
     const vm = require('vm');
 
-    // Parser Shield: Prevent non-fatal parsing errors from crashing the process
+    // 🛡️ Parser Shield: Prevent non-fatal parsing errors from crashing
     if (!Parser.shield_active) {
       const originalError = Parser.ERROR_HANDLER;
       Parser.ERROR_HANDLER = (error) => {
@@ -923,22 +923,17 @@ router.post('/download-video', async (req, res) => {
       Parser.shield_active = true;
     }
     
-    // Core Engine Override: Using native Node.js VM
+    // ⚡ Hybrid Engine: Use Jintr (jintr) for ultra-reliable deciphering
     if (Platform.shim && !Platform.shim.eval_overridden) {
-      Platform.shim.eval = (data, args) => {
+      const jintrPath = require.resolve('jintr');
+      Platform.shim.eval = async (data, args) => {
         try {
-          const script = new vm.Script(`(function() { ${data.output} })()`);
-          const context = vm.createContext({
-            Object, JSON, RegExp, Proxy, Symbol, Error, console, Math, String, Number, Array, Date,
-            Uint8Array, Uint16Array, Uint32Array, Int8Array, Int16Array, Int32Array, Float32Array, Float64Array,
-            ArrayBuffer, DataView, Buffer, atob, btoa, URL, URLSearchParams,
-            ...args
-          });
-          const result = script.runInContext(context);
-          return result;
+          const { Jintr } = await import('file://' + jintrPath);
+          const interpreter = new Jintr(data.output, args);
+          return interpreter.interpret();
         } catch (e) {
-          console.error('[Innertube] Eval Error:', e.message);
-          throw e;
+          // Fallback to VM
+          return vm.runInNewContext(data.output, args);
         }
       };
       Platform.shim.eval_overridden = true;
@@ -1086,26 +1081,28 @@ router.post('/video-info', async (req, res) => {
     const { Innertube, UniversalCache, Platform, Parser } = require('youtubei.js');
     const vm = require('vm');
     
-    // Parser Shield: Prevent non-fatal parsing errors from crashing the process
-    const originalError = Parser.ERROR_HANDLER;
-    Parser.ERROR_HANDLER = (error) => {
-      if (error.message?.includes('Type mismatch')) {
-        // Silently ignore UI parsing mismatches
-        return;
-      }
-      return originalError(error);
-    };
-    
+    // 🛡️ Parser Shield: Prevent non-fatal parsing errors from crashing
+    if (!Parser.shield_active) {
+      const originalError = Parser.ERROR_HANDLER;
+      Parser.ERROR_HANDLER = (error) => {
+        if (error.message?.includes('Type mismatch')) return;
+        return originalError(error);
+      };
+      Parser.shield_active = true;
+    }
+
+    // ⚡ Hybrid Engine: Use Jintr (jintr) for ultra-reliable deciphering
     if (Platform.shim && !Platform.shim.eval_overridden) {
-      Platform.shim.eval = (data, args) => {
-        const script = new vm.Script(`(function() { ${data.output} })()`);
-        const context = vm.createContext({
-          Object, JSON, RegExp, Proxy, Symbol, Error, console, Math, String, Number, Array, Date,
-          Uint8Array, Uint16Array, Uint32Array, Int8Array, Int16Array, Int32Array, Float32Array, Float64Array,
-          ArrayBuffer, DataView, Buffer, atob, btoa, URL, URLSearchParams,
-          ...args
-        });
-        return script.runInContext(context);
+      const jintrPath = require.resolve('jintr');
+      Platform.shim.eval = async (data, args) => {
+        try {
+          const { Jintr } = await import('file://' + jintrPath);
+          const interpreter = new Jintr(data.output, args);
+          return interpreter.interpret();
+        } catch (e) {
+          // Fallback to VM
+          return vm.runInNewContext(data.output, args);
+        }
       };
       Platform.shim.eval_overridden = true;
     }
