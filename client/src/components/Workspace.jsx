@@ -6,6 +6,11 @@ import { useToast } from '../context/ToastContext';
 import { API_URL } from '../context/AuthContext';
 import './Workspace.css';
 
+const toPascalCase = (str) => {
+  if (!str) return 'Zap';
+  return str.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+};
+
 export default function Workspace({ tool, config }) {
   const { toast } = useToast();
   const [url, setUrl] = useState('');
@@ -497,7 +502,7 @@ export default function Workspace({ tool, config }) {
                   <div className="process-btn-row">
                     <button className="btn btn-primary btn-process-main" onClick={handleProcess} disabled={fetchingInfo}>
                       {fetchingInfo ? (
-                        <>Analyzing... <Icons.Loader className="spin" size={16} /></>
+                        <>Analyzing... <Icons.Loader2 className="spin" size={16} /></>
                       ) : (
                         videoInfo ? <>Start Download <Icons.Download size={16} /></> : <>Analyze Link <Icons.Zap size={16} /></>
                       )}
