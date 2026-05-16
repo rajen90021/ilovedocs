@@ -910,8 +910,18 @@ router.post('/download-video', async (req, res) => {
 
     console.log(`[Innertube] Processing Video: ${videoId} (itag: ${itag || 'best'})`);
 
-    const { Innertube, UniversalCache, Platform } = require('youtubei.js');
+    const { Innertube, UniversalCache, Platform, Parser } = require('youtubei.js');
     const vm = require('vm');
+
+    // Parser Shield: Prevent non-fatal parsing errors from crashing the process
+    if (!Parser.shield_active) {
+      const originalError = Parser.ERROR_HANDLER;
+      Parser.ERROR_HANDLER = (error) => {
+        if (error.message?.includes('Type mismatch')) return;
+        return originalError(error);
+      };
+      Parser.shield_active = true;
+    }
     
     // Core Engine Override: Using native Node.js VM
     if (Platform.shim && !Platform.shim.eval_overridden) {
@@ -1073,8 +1083,18 @@ router.post('/video-info', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    const { Innertube, UniversalCache, Platform } = require('youtubei.js');
+    const { Innertube, UniversalCache, Platform, Parser } = require('youtubei.js');
     const vm = require('vm');
+    
+    // Parser Shield: Prevent non-fatal parsing errors from crashing the process
+    const originalError = Parser.ERROR_HANDLER;
+    Parser.ERROR_HANDLER = (error) => {
+      if (error.message?.includes('Type mismatch')) {
+        // Silently ignore UI parsing mismatches
+        return;
+      }
+      return originalError(error);
+    };
     
     if (Platform.shim && !Platform.shim.eval_overridden) {
       Platform.shim.eval = (data, args) => {
