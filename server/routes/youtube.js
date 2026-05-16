@@ -943,7 +943,7 @@ router.post('/to-markdown', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// 13. VIDEO DOWNLOAD
+// 13. VIDEO DOWNLOAD (Hybrid Engine)
 // ═══════════════════════════════════════════════════════════
 router.post('/download-video', async (req, res) => {
   try {
@@ -951,53 +951,82 @@ router.post('/download-video', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    // Use consistent browser-like headers for ytdl
-    const info = await ytdl.getInfo(url, {
-      requestOptions: {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Referer': 'https://www.youtube.com/',
-        }
-      }
-    });
+    console.log(`[Download] Processing video: ${videoId}`);
 
-    // More aggressive format selection
+    let info;
+    try {
+      // Phase 1: Try Standard ytdl-core
+      info = await ytdl.getInfo(url, {
+        requestOptions: {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          }
+        }
+      });
+    } catch (ytdlErr) {
+      console.warn(`[Download] ytdl-core failed for ${videoId}, attempting YouTubei fallback...`);
+      // Phase 2: Internal API Fallback (The Y2Mate method)
+      const details = await fetchVideoDetails(videoId);
+      if (!details || !details.streamingData) {
+        throw new Error('YouTube is blocking this download. Please try a different video or try again later.');
+      }
+      
+      // Construct a minimal info object for our logic
+      info = {
+        videoDetails: details.videoDetails,
+        formats: [
+          ...(details.streamingData.formats || []),
+          ...(details.streamingData.adaptiveFormats || [])
+        ]
+      };
+    }
+
+    // Phase 3: Smart Format Selection
     let format = ytdl.chooseFormat(info.formats, { quality: 'highestvideo', filter: 'audioandvideo' });
     
     if (!format) {
-      // Fallback to highest quality video-only if combined is missing (common for HD)
-      // Note: This would normally need merging, but for simplicity we take the best available single stream
-      format = ytdl.chooseFormat(info.formats, { quality: 'highest', filter: (f) => f.container === 'mp4' && f.hasVideo && f.hasAudio }) ||
-               ytdl.chooseFormat(info.formats, { quality: 'highest' });
+      format = info.formats.find(f => f.hasVideo && f.hasAudio && f.container === 'mp4') ||
+               info.formats.find(f => f.hasVideo && f.hasAudio) ||
+               info.formats[0];
     }
 
-    if (!format) throw new Error('Failed to find any playable formats for this video.');
+    if (!format || !format.url) {
+      throw new Error('No downloadable streaming URLs found for this video.');
+    }
 
     const cleanTitle = (info.videoDetails.title || 'video').replace(/[^a-z0-9]/gi, '_').toLowerCase();
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.mp4"`);
     
-    ytdl(url, { 
-      format,
-      requestOptions: {
+    // Phase 4: Direct Stream or Proxy Pipe
+    if (format.url) {
+      // If we have a direct URL, we pipe it with browser headers
+      const streamRes = await axios({
+        method: 'get',
+        url: format.url,
+        responseType: 'stream',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          'Referer': 'https://www.youtube.com/',
         }
-      }
-    }).pipe(res);
+      });
+      streamRes.data.pipe(res);
+    } else {
+      // Fallback to ytdl pipe if possible
+      ytdl(url, { format }).pipe(res);
+    }
+
   } catch (err) {
-    console.error('[download-video] Error:', err.message);
-    const isBotBlock = err.message.includes('403') || err.message.includes('sign in');
+    console.error('[download-video] Fatal Error:', err.message);
     res.status(500).json({ 
-      error: isBotBlock ? 'YouTube Security Block' : 'Processing Failed',
-      message: isBotBlock ? 'YouTube has temporarily restricted this download. Please try again in a few minutes.' : err.message
+      error: 'Processing Failed',
+      message: err.message.includes('403') ? 'YouTube has blocked this request. Try a different video.' : err.message
     });
   }
 });
 
 // ═══════════════════════════════════════════════════════════
-// 14. AUDIO EXTRACT
+// 14. AUDIO EXTRACT (Hybrid Engine)
 // ═══════════════════════════════════════════════════════════
 router.post('/extract-audio', async (req, res) => {
   try {
@@ -1005,36 +1034,61 @@ router.post('/extract-audio', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    const info = await ytdl.getInfo(url, {
-      requestOptions: {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    console.log(`[Audio] Processing video: ${videoId}`);
+
+    let info;
+    try {
+      info = await ytdl.getInfo(url, {
+        requestOptions: {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          }
         }
-      }
-    });
+      });
+    } catch (err) {
+      console.warn(`[Audio] ytdl-core failed, attempting YouTubei fallback...`);
+      const details = await fetchVideoDetails(videoId);
+      if (!details || !details.streamingData) throw new Error('Audio extraction is restricted for this video.');
+      
+      info = {
+        videoDetails: details.videoDetails,
+        formats: [
+          ...(details.streamingData.formats || []),
+          ...(details.streamingData.adaptiveFormats || [])
+        ]
+      };
+    }
 
-    const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
+    const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' }) ||
+                   info.formats.find(f => f.hasAudio && !f.hasVideo) ||
+                   info.formats.find(f => f.hasAudio);
 
-    if (!format) throw new Error('No audio format found');
+    if (!format || !format.url) throw new Error('No audio streaming URLs found.');
 
     const cleanTitle = (info.videoDetails.title || 'audio').replace(/[^a-z0-9]/gi, '_').toLowerCase();
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.mp3"`);
     
-    ytdl(url, { 
-      format,
-      requestOptions: {
+    if (format.url) {
+      const streamRes = await axios({
+        method: 'get',
+        url: format.url,
+        responseType: 'stream',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          'Referer': 'https://www.youtube.com/',
         }
-      }
-    }).pipe(res);
+      });
+      streamRes.data.pipe(res);
+    } else {
+      ytdl(url, { format }).pipe(res);
+    }
+
   } catch (err) {
-    console.error('[extract-audio] Error:', err.message);
-    const isBotBlock = err.message.includes('403') || err.message.includes('sign in');
+    console.error('[extract-audio] Fatal Error:', err.message);
     res.status(500).json({ 
-      error: isBotBlock ? 'YouTube Security Block' : 'Extraction Failed',
-      message: isBotBlock ? 'YouTube is currently restricting audio extraction for this video.' : err.message
+      error: 'Extraction Failed',
+      message: err.message
     });
   }
 });
