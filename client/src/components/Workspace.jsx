@@ -127,7 +127,6 @@ export default function Workspace({ tool, config }) {
           return;
         }
       }
-      }
     }
 
     // Step 1: Fetch Video Info for Video Downloader
