@@ -943,7 +943,7 @@ router.post('/to-markdown', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// 13. VIDEO DOWNLOAD (Hybrid Engine)
+// 13. VIDEO DOWNLOAD (Innertube Engine)
 // ═══════════════════════════════════════════════════════════
 router.post('/download-video', async (req, res) => {
   try {
@@ -951,82 +951,54 @@ router.post('/download-video', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    console.log(`[Download] Processing video: ${videoId}`);
+    console.log(`[Innertube] Processing Video: ${videoId}`);
 
-    let info;
-    try {
-      // Phase 1: Try Standard ytdl-core
-      info = await ytdl.getInfo(url, {
-        requestOptions: {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-          }
-        }
-      });
-    } catch (ytdlErr) {
-      console.warn(`[Download] ytdl-core failed for ${videoId}, attempting YouTubei fallback...`);
-      // Phase 2: Internal API Fallback (The Y2Mate method)
-      const details = await fetchVideoDetails(videoId);
-      if (!details || !details.streamingData) {
-        throw new Error('YouTube is blocking this download. Please try a different video or try again later.');
-      }
-      
-      // Construct a minimal info object for our logic
-      info = {
-        videoDetails: details.videoDetails,
-        formats: [
-          ...(details.streamingData.formats || []),
-          ...(details.streamingData.adaptiveFormats || [])
-        ]
-      };
-    }
-
-    // Phase 3: Smart Format Selection
-    let format = ytdl.chooseFormat(info.formats, { quality: 'highestvideo', filter: 'audioandvideo' });
+    const { Innertube, UniversalCache } = require('youtubei.js');
+    const yt = await Innertube.create({ cache: new UniversalCache(false), generate_session_locally: true });
     
-    if (!format) {
-      format = info.formats.find(f => f.hasVideo && f.hasAudio && f.container === 'mp4') ||
-               info.formats.find(f => f.hasVideo && f.hasAudio) ||
-               info.formats[0];
-    }
+    const info = await yt.getInfo(videoId);
+    const format = info.chooseFormat({ type: 'video+audio', quality: 'best', format: 'mp4' });
 
-    if (!format || !format.url) {
-      throw new Error('No downloadable streaming URLs found for this video.');
-    }
+    if (!format) throw new Error('No playable mp4 formats found for this video.');
 
-    const cleanTitle = (info.videoDetails.title || 'video').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const cleanTitle = (info.basic_info.title || 'video').replace(/[^a-z0-9]/gi, '_').toLowerCase();
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.mp4"`);
+
+    const stream = await info.download({
+      type: 'video+audio',
+      quality: 'best',
+      format: 'mp4'
+    });
+
+    // Convert WebStream to Node.js Readable stream
+    const { Readable } = require('stream');
+    const reader = stream.getReader();
     
-    // Phase 4: Direct Stream or Proxy Pipe
-    if (format.url) {
-      // If we have a direct URL, we pipe it with browser headers
-      const streamRes = await axios({
-        method: 'get',
-        url: format.url,
-        responseType: 'stream',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-          'Referer': 'https://www.youtube.com/',
+    const nodeStream = new Readable({
+      async read() {
+        const { done, value } = await reader.read();
+        if (done) {
+          this.push(null);
+        } else {
+          this.push(Buffer.from(value));
         }
-      });
-      streamRes.data.pipe(res);
-    } else {
-      // Fallback to ytdl pipe if possible
-      ytdl(url, { format }).pipe(res);
-    }
+      }
+    });
+
+    nodeStream.pipe(res);
 
   } catch (err) {
-    console.error('[download-video] Fatal Error:', err.message);
+    console.error('[Innertube] Video Error:', err.message);
     res.status(500).json({ 
       error: 'Processing Failed',
-      message: err.message.includes('403') ? 'YouTube has blocked this request. Try a different video.' : err.message
+      message: err.message.includes('403') ? 'YouTube is currently restricting access to this video.' : err.message
     });
   }
 });
 
 // ═══════════════════════════════════════════════════════════
-// 14. AUDIO EXTRACT (Hybrid Engine)
+// 14. AUDIO EXTRACT (Innertube Engine)
 // ═══════════════════════════════════════════════════════════
 router.post('/extract-audio', async (req, res) => {
   try {
@@ -1034,58 +1006,43 @@ router.post('/extract-audio', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    console.log(`[Audio] Processing video: ${videoId}`);
+    console.log(`[Innertube] Processing Audio: ${videoId}`);
 
-    let info;
-    try {
-      info = await ytdl.getInfo(url, {
-        requestOptions: {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-          }
-        }
-      });
-    } catch (err) {
-      console.warn(`[Audio] ytdl-core failed, attempting YouTubei fallback...`);
-      const details = await fetchVideoDetails(videoId);
-      if (!details || !details.streamingData) throw new Error('Audio extraction is restricted for this video.');
-      
-      info = {
-        videoDetails: details.videoDetails,
-        formats: [
-          ...(details.streamingData.formats || []),
-          ...(details.streamingData.adaptiveFormats || [])
-        ]
-      };
-    }
+    const { Innertube, UniversalCache } = require('youtubei.js');
+    const yt = await Innertube.create({ cache: new UniversalCache(false), generate_session_locally: true });
+    
+    const info = await yt.getInfo(videoId);
+    const format = info.chooseFormat({ type: 'audio', quality: 'best' });
 
-    const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' }) ||
-                   info.formats.find(f => f.hasAudio && !f.hasVideo) ||
-                   info.formats.find(f => f.hasAudio);
+    if (!format) throw new Error('No audio streams found.');
 
-    if (!format || !format.url) throw new Error('No audio streaming URLs found.');
-
-    const cleanTitle = (info.videoDetails.title || 'audio').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const cleanTitle = (info.basic_info.title || 'audio').replace(/[^a-z0-9]/gi, '_').toLowerCase();
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.mp3"`);
+
+    const stream = await info.download({
+      type: 'audio',
+      quality: 'best'
+    });
+
+    const { Readable } = require('stream');
+    const reader = stream.getReader();
     
-    if (format.url) {
-      const streamRes = await axios({
-        method: 'get',
-        url: format.url,
-        responseType: 'stream',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-          'Referer': 'https://www.youtube.com/',
+    const nodeStream = new Readable({
+      async read() {
+        const { done, value } = await reader.read();
+        if (done) {
+          this.push(null);
+        } else {
+          this.push(Buffer.from(value));
         }
-      });
-      streamRes.data.pipe(res);
-    } else {
-      ytdl(url, { format }).pipe(res);
-    }
+      }
+    });
+
+    nodeStream.pipe(res);
 
   } catch (err) {
-    console.error('[extract-audio] Fatal Error:', err.message);
+    console.error('[Innertube] Audio Error:', err.message);
     res.status(500).json({ 
       error: 'Extraction Failed',
       message: err.message
