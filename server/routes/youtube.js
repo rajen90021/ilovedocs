@@ -953,18 +953,21 @@ router.post('/download-video', async (req, res) => {
 
     console.log(`[Innertube] Processing Video: ${videoId}`);
 
-    const { Innertube, UniversalCache } = require('youtubei.js');
+    const { Innertube, UniversalCache, Platform } = require('youtubei.js');
     const Jinter = require('jinter').default;
     
+    // Core Engine Override: Inject the Jinter "Brain" into the platform shim
+    if (Platform.shim && !Platform.shim.eval_overridden) {
+      Platform.shim.eval = (data) => {
+        const jinter = new Jinter(data.output);
+        return jinter.interpret();
+      };
+      Platform.shim.eval_overridden = true;
+    }
+
     const yt = await Innertube.create({ 
       cache: new UniversalCache(false), 
       generate_session_locally: true
-    });
-
-    // Correct method name is camelCase: setEvaluator
-    yt.session.setEvaluator((code) => {
-      const jinter = new Jinter(code);
-      return jinter.interpret();
     });
     
     const info = await yt.getInfo(videoId);
@@ -1019,18 +1022,21 @@ router.post('/extract-audio', async (req, res) => {
 
     console.log(`[Innertube] Processing Audio: ${videoId}`);
 
-    const { Innertube, UniversalCache } = require('youtubei.js');
+    const { Innertube, UniversalCache, Platform } = require('youtubei.js');
     const Jinter = require('jinter').default;
     
+    // Core Engine Override
+    if (Platform.shim && !Platform.shim.eval_overridden) {
+      Platform.shim.eval = (data) => {
+        const jinter = new Jinter(data.output);
+        return jinter.interpret();
+      };
+      Platform.shim.eval_overridden = true;
+    }
+
     const yt = await Innertube.create({ 
       cache: new UniversalCache(false), 
       generate_session_locally: true
-    });
-
-    // Correct method name is camelCase: setEvaluator
-    yt.session.setEvaluator((code) => {
-      const jinter = new Jinter(code);
-      return jinter.interpret();
     });
     
     const info = await yt.getInfo(videoId);
