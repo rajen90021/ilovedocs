@@ -958,15 +958,13 @@ router.post('/download-video', async (req, res) => {
     
     const yt = await Innertube.create({ 
       cache: new UniversalCache(false), 
-      generate_session_locally: true 
+      generate_session_locally: true,
+      evaluator: (code) => {
+        const jinter = new Jinter(code);
+        return jinter.interpret();
+      }
     });
 
-    // Provide the evaluator
-    yt.session.set_evaluator((code) => {
-      const jinter = new Jinter(code);
-      return jinter.interpret();
-    });
-    
     const info = await yt.getInfo(videoId);
     const format = info.chooseFormat({ type: 'video+audio', quality: 'best', format: 'mp4' });
 
@@ -1024,15 +1022,13 @@ router.post('/extract-audio', async (req, res) => {
     
     const yt = await Innertube.create({ 
       cache: new UniversalCache(false), 
-      generate_session_locally: true 
+      generate_session_locally: true,
+      evaluator: (code) => {
+        const jinter = new Jinter(code);
+        return jinter.interpret();
+      }
     });
 
-    // Provide the evaluator
-    yt.session.set_evaluator((code) => {
-      const jinter = new Jinter(code);
-      return jinter.interpret();
-    });
-    
     const info = await yt.getInfo(videoId);
     const format = info.chooseFormat({ type: 'audio', quality: 'best' });
 
