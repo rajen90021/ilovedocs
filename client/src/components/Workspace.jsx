@@ -284,19 +284,23 @@ export default function Workspace({ tool, config }) {
           {!result && !processing && (
             <div className="input-area">
               {isUrlTool ? (
-                <div className="premium-input-wrapper">
-                  <Icons.Link className="input-icon" size={18} />
-                  <input
-                    type="text"
-                    className="premium-url-input"
-                    placeholder="Paste YouTube video URL here (e.g. https://youtube.com/watch?v=...)"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleProcess()}
-                  />
-                  <button className="btn btn-primary btn-input" onClick={handleProcess}>
-                    Process <Icons.ArrowRight size={16} />
-                  </button>
+                <div className="url-input-container">
+                  <div className="premium-input-wrapper">
+                    <Icons.Link className="input-icon" size={18} />
+                    <input
+                      type="text"
+                      className="premium-url-input"
+                      placeholder="Paste YouTube video URL here (e.g. https://youtube.com/watch?v=...)"
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleProcess()}
+                    />
+                  </div>
+                  <div className="process-btn-row">
+                    <button className="btn btn-primary btn-process-main" onClick={handleProcess}>
+                      Process Content <Icons.ArrowRight size={16} />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div {...getRootProps()} className={`premium-dropzone ${isDragActive ? 'active' : ''}`}>
@@ -415,9 +419,11 @@ export default function Workspace({ tool, config }) {
                     )}
                   </div>
 
-                  <button className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }} onClick={handleProcess}>
-                    Process with {tool.name} <Icons.Zap size={16} />
-                  </button>
+                  <div className="process-btn-row">
+                    <button className="btn btn-primary btn-process-main" onClick={handleProcess}>
+                      Process with {tool.name} <Icons.Zap size={16} />
+                    </button>
+                  </div>
                 </>
               )}
             </div>
