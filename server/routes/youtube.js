@@ -958,15 +958,23 @@ router.post('/download-video', async (req, res) => {
     
     // Core Engine Override: Inject the Jintr "Brain" into the platform shim
     if (Platform.shim && !Platform.shim.eval_overridden) {
-      Platform.shim.eval = (data) => {
+      Platform.shim.eval = (data, args) => {
+        console.log(`[Decipher] Eval called with ${Object.keys(data).length} data keys and ${Object.keys(args || {}).length} args.`);
         const jintr = new Jintr();
-        // Add missing globals needed for YouTube deciphering
+        // Add core globals needed for YouTube deciphering
         jintr.defineObject('Object', Object);
         jintr.defineObject('JSON', JSON);
         jintr.defineObject('RegExp', RegExp);
+        jintr.defineObject('Proxy', Proxy);
+        jintr.defineObject('Symbol', Symbol);
+        jintr.defineObject('Error', Error);
         
-        // Wrap in IIFE to handle top-level returns and capture results
-        return jintr.evaluate(`(function() { ${data.output} })()`);
+        try {
+          return jintr.evaluate(`(function() { ${data.output} })()`);
+        } catch (e) {
+          console.error('[Decipher] Jintr Error:', e.message);
+          throw e;
+        }
       };
       Platform.shim.eval_overridden = true;
     }
@@ -1033,11 +1041,14 @@ router.post('/extract-audio', async (req, res) => {
     
     // Core Engine Override
     if (Platform.shim && !Platform.shim.eval_overridden) {
-      Platform.shim.eval = (data) => {
+      Platform.shim.eval = (data, args) => {
         const jintr = new Jintr();
         jintr.defineObject('Object', Object);
         jintr.defineObject('JSON', JSON);
         jintr.defineObject('RegExp', RegExp);
+        jintr.defineObject('Proxy', Proxy);
+        jintr.defineObject('Symbol', Symbol);
+        jintr.defineObject('Error', Error);
         return jintr.evaluate(`(function() { ${data.output} })()`);
       };
       Platform.shim.eval_overridden = true;
