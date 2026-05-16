@@ -6,11 +6,6 @@ import { useToast } from '../context/ToastContext';
 import { API_URL } from '../context/AuthContext';
 import './Workspace.css';
 
-const toPascalCase = (str) => {
-  if (!str) return 'Zap';
-  return str.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
-};
-
 export default function Workspace({ tool, config }) {
   const { toast } = useToast();
   const [url, setUrl] = useState('');
