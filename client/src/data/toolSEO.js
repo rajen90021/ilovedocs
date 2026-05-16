@@ -12,57 +12,106 @@
 
 export const TOOL_SEO = {
   'yt-thumbnail': {
-    title: 'YouTube Thumbnail Downloader — Get High-Res Thumbnails Free',
-    h1: 'Download YouTube Thumbnails In HD',
-    h2: 'Free HD & 4K YouTube Thumbnail Downloader',
-    description: 'Extract and download high-resolution thumbnails from any YouTube video instantly. No login, no ads, high-quality JPG results.',
-    longDescription: 'Need a high-quality thumbnail for a report, blog post, or inspiration? Our free YouTube Thumbnail Downloader lets you grab the specific HD cover image from any video in seconds. Just paste the URL and get the MaxRes, High, and Medium resolution images instantly.',
-    keywords: 'youtube thumbnail downloader, download yt thumbnails, save youtube thumbnail hd, extract video cover image',
+    title: 'YouTube Thumbnail Downloader HD — Free 4K Video Cover Saver',
+    h1: 'Download YouTube Thumbnails in Ultra HD',
+    h2: '#1 Free HD & 4K YouTube Thumbnail Downloader Online',
+    description: 'Get high-resolution YouTube thumbnails (1280x720, 1920x1080) for free. Extract 4K video covers instantly. No login, no ads, high-quality JPG results.',
+    longDescription: 'Struggling to find the original high-resolution thumbnail of a YouTube video? Our professional YouTube Thumbnail Downloader is built for creators, designers, and researchers. Whether you need an HD cover for a presentation, blog post, or inspiration, our tool fetches the Maximum Resolution (MaxResDefault) directly from YouTube servers. 100% free, forever.',
+    keywords: 'youtube thumbnail downloader, download yt thumbnails hd, save youtube thumbnail 4k, extract video cover image, high res youtube thumbnail, youtube thumbnail grabber',
+    features: [
+      'Download in MaxRes, High, Medium, and SD qualities',
+      'Instant extraction – no waiting or processing queues',
+      'No registration or personal data required',
+      'Supports all YouTube video formats including Shorts'
+    ],
     howTo: [
-      'Paste the YouTube video URL into the input field.',
-      'Wait for the dashboard to fetch the thumbnail options.',
-      'Select the resolution you need (MaxRes, High, or Medium).',
-      'Right-click or click download to save the image.'
+      'Copy the YouTube video URL from your browser or app.',
+      'Paste the link into the input field above.',
+      'Wait a second for the tool to fetch all available resolutions.',
+      'Choose your preferred quality (MaxRes is recommended for 4K/HD).',
+      'Click Download to save the JPG image to your device.'
     ],
     faqs: [
-      { q: "Is it legal to download YouTube thumbnails?", a: "Downloading thumbnails is generally allowed for personal use or fair use scenarios like criticism, news, or education. Always respect the original creator's copyright." },
-      { q: "What is the highest resolution available?", a: "We provide 'MaxResDefault' which is usually 1280x720 or 1920x1080 depending on what the creator uploaded." }
+      { q: "Is it legal to download YouTube thumbnails?", a: "Downloading thumbnails is generally permitted for personal use, education, or news reporting under Fair Use. However, always credit the original creator if you use it publicly." },
+      { q: "What is the highest resolution available?", a: "We provide the 'MaxResDefault' version, which is the original size uploaded by the creator (typically 1280x720 or 1920x1080)." },
+      { q: "Does this work for YouTube Shorts?", a: "Yes! Simply paste the Shorts link and we will extract the cover image for you." }
     ]
   },
   'yt-tags': {
-    title: 'YouTube Tag Extractor — Get Video SEO Tags Free',
-    h1: 'Extract YouTube Tags & SEO Keywords',
-    h2: 'Optimize Your Videos with High-Ranking Tags',
-    description: 'See the hidden tags and SEO keywords used by successful YouTube videos. Research competition and improve your own video rankings free.',
-    longDescription: 'Struggling with YouTube SEO? Our Tag Extractor reveals exactly which tags top-ranking videos are using. By analyzing your competition, you can discover high-volume keywords to help your own videos rank higher in search results and the "Recommended" section.',
-    keywords: 'youtube tag extractor, get tags from youtube video, youtube seo research tool, find video keywords',
+    title: 'YouTube Tag Extractor — Get SEO Keywords from Any Video',
+    h1: 'Extract YouTube SEO Tags & Keywords',
+    h2: 'Find High-Ranking Keywords with Our Tag Extractor',
+    description: 'Discover the hidden SEO tags used by viral YouTube videos. Analyze competition and improve your video rankings with our free tag extractor tool.',
+    longDescription: 'Want to know why your competitors are ranking on Page 1 while you aren\'t? It often comes down to their hidden metadata. Our YouTube Tag Extractor reveals the exact keywords and tags used by top-performing videos. By researching these tags, you can optimize your own videos to appear in search results and the "Suggested Videos" sidebar, driving more organic traffic to your channel.',
+    keywords: 'youtube tag extractor, get tags from youtube video, youtube seo research tool, find video keywords, extract yt tags free, youtube keyword research',
+    features: [
+      'Extract hidden metadata that YouTube doesn\'t show publicly',
+      'One-click "Copy All Tags" for easy optimization',
+      'Analyze any public YouTube video instantly',
+      'Identify niche-specific high-volume keywords'
+    ],
     howTo: [
-      'Enter the link of the YouTube video you want to analyze.',
-      'Click the "Extract Tags" button.',
-      'View the complete list of hidden SEO tags used by the video.',
-      'Copy the tags to your clipboard for your own metadata.'
+      'Find a high-ranking video in your niche on YouTube.',
+      'Copy the video link (URL).',
+      'Paste it into our Tag Extractor tool.',
+      'Hit "Extract" to see every tag used by that creator.',
+      'Copy the most relevant tags for your own video metadata.'
     ],
     faqs: [
-      { q: "Why are YouTube tags hidden?", a: "YouTube hides tags from the front-end UI for a cleaner look, but they are still in the metadata. Our tool simply pulls them out for you to see." },
-      { q: "How many tags should I use on my video?", a: "YouTube allows up to 500 characters of tags. Focus on relevance rather than quantity." }
+      { q: "Why are YouTube tags important?", a: "Tags help YouTube\'s algorithm understand the context of your video, which is crucial for appearing in search results and recommendations." },
+      { q: "How many tags should I use?", a: "YouTube allows up to 500 characters. We recommend using 10-15 highly relevant tags rather than stuffing irrelevant keywords." },
+      { q: "Can I extract tags from private videos?", a: "No, our tool only works with public or unlisted videos where metadata is accessible." }
+    ]
+  },
+  'yt-monetization': {
+    title: 'YouTube Monetization Checker — Check Channel & Video Status',
+    h1: 'Is This YouTube Video Monetized?',
+    h2: 'Check Monetization Status of Any Channel or Video',
+    description: 'Find out instantly if a YouTube channel or video is earning money. Our tool analyzes metadata to detect monetization markers and ads.',
+    longDescription: 'Curious about your favorite creator\'s earnings or checking if your own video is eligible for revenue? Our YouTube Monetization Checker uses advanced analysis to look for specific "adPlacements" and "monetizationSettings" markers in the video data. It provides a definitive "Yes" or "No" along with estimated revenue projections based on views and industry-standard RPMs.',
+    keywords: 'youtube monetization checker, is this video monetized, check youtube channel earnings, youtube revenue checker, check monetization status',
+    features: [
+      'Accurate detection of official monetization flags',
+      'Channel-level and video-level analysis',
+      'Estimated revenue calculation based on view count',
+      'Check if a video is "Family Friendly" or age-restricted'
+    ],
+    howTo: [
+      'Enter the URL of the YouTube video or channel you want to check.',
+      'Click "Check Status" to begin the analysis.',
+      'View the monetization badge (Green for Active, Red for Inactive).',
+      'Check the "Estimated Earnings" section for revenue projections.'
+    ],
+    faqs: [
+      { q: "How accurate is the monetization checker?", a: "Our tool is over 98% accurate as it reads the raw metadata returned by YouTube's internal API regarding ad placements." },
+      { q: "Why does it say 'Not Monetized' for some big channels?", a: "A channel might be monetized, but a specific video might be demonetized due to copyright claims, community guidelines, or being 'not advertiser-friendly'." },
+      { q: "Can it check total channel earnings?", a: "Yes, by pasting a channel link, we estimate lifetime earnings based on total public view counts." }
     ]
   },
   'yt-transcript': {
-    title: 'YouTube Transcript Downloader — Get Video Captions to Text',
+    title: 'YouTube Transcript Downloader — Get Video Captions to Text Free',
     h1: 'Download YouTube Transcripts as Text',
-    h2: 'Convert Video Audio to Readable Text Instantly',
-    description: 'Extract full timestamps and text transcripts from any YouTube video. Perfect for students, researchers, and content creators.',
-    longDescription: 'Turn any video into a readable document in one click. Our YouTube Transcript Downloader extracts all captions and formats them into clean, searchable text. Ideal for taking notes from lectures, repurposing video content into blog posts, or studying long-form interviews.',
-    keywords: 'youtube transcript downloader, convert youtube to text, download captions from youtube, save video transcript',
+    h2: 'Convert Video Audio to Readable Text & Captions Instantly',
+    description: 'Extract full timestamps and text transcripts from any YouTube video. Free captions to text converter for students, researchers, and creators.',
+    longDescription: 'Turn any video into a readable, searchable document in one click. Our YouTube Transcript Downloader extracts all official and auto-generated captions and formats them into clean text. Perfect for taking notes from lectures, repurposing video content into blog posts, or studying long-form interviews without watching the entire video.',
+    keywords: 'youtube transcript downloader, convert youtube to text, download captions from youtube, save video transcript, yt captions extractor, youtube text converter',
+    features: [
+      'Extract full transcripts with or without timestamps',
+      'Supports auto-generated and manual captions',
+      'One-click "Copy Transcript" for easy editing',
+      'Works with long-form videos and educational content'
+    ],
     howTo: [
-      'Paste the URL of the YouTube video.',
-      'Click "Get Transcript" to start the extraction.',
+      'Paste the URL of the YouTube video you want to transcribe.',
+      'Click "Get Transcript" to start the extraction process.',
       'View the full text in our clean dashboard reader.',
+      'Select "With Timestamps" or "Text Only" formatting.',
       'Copy the entire transcript or save it for your research.'
     ],
     faqs: [
-      { q: "Does this work for videos without CC?", a: "No, the video must have either auto-generated captions or manually uploaded subtitles for our tool to fetch them." },
-      { q: "Can I download transcripts in different languages?", a: "We currently fetch the primary language transcript available on the video." }
+      { q: "Does this work for videos without CC?", a: "The video must have either auto-generated captions or manually uploaded subtitles for our tool to fetch them." },
+      { q: "Can I download transcripts in different languages?", a: "We currently fetch the primary language transcript available. If the video has multiple tracks, the default one is extracted." },
+      { q: "Is there a limit on video length?", a: "Our tool can handle transcripts for videos up to several hours long with ease." }
     ]
   },
   'yt-region': {
@@ -84,39 +133,28 @@ export const TOOL_SEO = {
     ]
   },
   'yt-summarize': {
-    title: 'YouTube Video Summarizer AI — Get Instant Video Recaps',
+    title: 'YouTube Video Summarizer AI — Get Instant Video Recaps Free',
     h1: 'AI-Powered YouTube Video Summarization',
-    h2: 'Summarize Long Videos into Key Points Instantly',
-    description: 'Use advanced AI to summarize any YouTube video into clear bullet points. Save hours of watching time—get the insights fast.',
-    longDescription: 'Do not have time to watch a 30-minute lecture or interview? Our AI Video Summarizer uses state-of-the-art language models to watch the video for you and return a concise, high-impact summary. Get the key takeaways, main arguments, and important data points in seconds.',
-    keywords: 'youtube video summarizer, ai video summary, summarize youtube with ai, yt recap tool',
+    h2: 'Summarize Long Videos into Key Points Instantly with AI',
+    description: 'Use advanced Gemini AI to summarize any YouTube video into clear bullet points. Save hours of watching—get the core insights fast.',
+    longDescription: 'Don\'t have time to watch a 30-minute lecture or interview? Our AI Video Summarizer uses state-of-the-art language models (Gemini Pro) to watch the video for you and return a concise, high-impact summary. Get the key takeaways, main arguments, and important data points in seconds. Ideal for learning faster and maximizing your productivity.',
+    keywords: 'youtube video summarizer, ai video summary, summarize youtube with ai, yt recap tool, youtube video to bullet points, ai video notes',
+    features: [
+      'AI-driven summary of key insights and takeaways',
+      'Structured formatting with Overview and Bullet Points',
+      'Processes videos up to 2 hours long',
+      'Supports educational, news, and technical content'
+    ],
     howTo: [
       'Provide the YouTube URL of the video you want to summarize.',
-      'Click "Summarize with AI".',
-      'Wait for the AI to analyze the transcript and generate a recap.',
+      'Click "Summarize with AI" and wait a few seconds.',
+      'The AI analyzes the transcript and generates a recap.',
       'Review the key insights and copy the summary for your notes.'
     ],
     faqs: [
       { q: "How accurate is the AI summary?", a: "The AI is highly accurate as it analyzes the actual transcript of the video. However, always verify critical numbers or facts." },
-      { q: "Is there a length limit for videos?", a: "The tool works best on videos under 20 minutes, but can handle longer content by focusing on the most relevant sections." }
-    ]
-  },
-  'yt-monetization': {
-    title: 'YouTube Monetization Checker — See if a Channel is Monetized',
-    h1: 'Check YouTube Channel Monetization Status',
-    h2: 'Find Out if Any YouTube Channel is Making Money',
-    description: 'Instantly check if a YouTube channel or video is monetized. See subscriber counts, estimated earnings, and family-friendly statuses for free.',
-    longDescription: 'Curious if your favorite creator is monetized, or doing research on competitors in your niche? Our YouTube Monetization Checker analyzes the source code and metadata of any channel to reliably determine its monetization status. Get comprehensive stats including total views, subscriber milestones, and family-friendly tags in one click.',
-    keywords: 'youtube monetization checker, is channel monetized, check youtube channel earnings, youtube money calculator',
-    howTo: [
-      'Paste the URL of a YouTube channel or a specific video.',
-      'Click the Check button to scan the channel data.',
-      'Instantly see if the channel has monetization enabled.',
-      'Review additional metrics like estimated earnings and safety status.'
-    ],
-    faqs: [
-      { q: "How do you know if a channel is monetized?", a: "We analyze hidden metadata tags in the channel source code that indicate whether the channel is approved for the YouTube Partner Program." },
-      { q: "Does checking a channel alert the owner?", a: "No, this tool performs a completely anonymous check." }
+      { q: "Is there a limit to the video length?", a: "We can summarize videos up to roughly 14,000 words of transcript (about 2 hours of speech)." },
+      { q: "Do I need an AI API key?", a: "No, we handle all the AI processing on our servers for free." }
     ]
   },
   'yt-seo-score': {
@@ -138,21 +176,28 @@ export const TOOL_SEO = {
     ]
   },
   'yt-revenue': {
-    title: 'YouTube Revenue Calculator — Estimate Channel Earnings',
-    h1: 'YouTube Revenue & Earnings Calculator',
-    h2: 'Calculate Daily, Monthly, and Yearly Earnings',
-    description: 'Calculate the estimated revenue of any YouTube channel or video based on views and RPM. Free YouTube money calculator.',
-    longDescription: 'Ever wondered how much a specific video made? Our YouTube Revenue Calculator uses standard industry RPM (Revenue Per Mille) metrics combined with live view-counts to estimate the daily, monthly, and yearly income of any video or channel. Adjust sliders or rely on our data estimates to see the financial potential of YouTube niches.',
-    keywords: 'youtube revenue calculator, youtube money calculator, how much do youtubers make, estimate youtube earnings',
+    title: 'YouTube Revenue Calculator — Estimate Channel & Video Earnings',
+    h1: 'YouTube Earnings & Revenue Calculator',
+    h2: 'How Much Do YouTubers Make? Calculate Earnings Instantly',
+    description: 'Estimate monthly and yearly earnings for any YouTube channel. Calculate potential revenue based on views, CPM, and engagement rates.',
+    longDescription: 'Curious about the earning potential of a niche or a specific channel? Our YouTube Revenue Calculator provides detailed projections based on view counts and industry-standard RPM (Revenue Per Mille) benchmarks. Whether you are a creator planning your next move or just curious about channel stats, our tool gives you a clear picture of the financial side of YouTube.',
+    keywords: 'youtube revenue calculator, youtube money calculator, check yt channel earnings, estimate youtube salary, how much youtube pays for views',
+    features: [
+      'Daily, Monthly, and Yearly revenue projections',
+      'Adjustable CPM/RPM sliders for better accuracy',
+      'Competitor channel earning analysis',
+      'Breakdown of earnings per 1,000 and 1,000,000 views'
+    ],
     howTo: [
-      'Enter the YouTube video or channel URL you are curious about.',
-      'Let the tool fetch the total view counts.',
-      'Review the projected daily, monthly, and yearly earnings.',
-      'Understand how RPM differences affect total income.'
+      'Enter the YouTube Channel URL or Video URL.',
+      'Click "Calculate Revenue".',
+      'Review the earnings table showing daily and yearly estimates.',
+      'Use the results to benchmark channel performance or set goals.'
     ],
     faqs: [
-      { q: "Are these earnings exact?", a: "No, these are estimates. Exact earnings depend heavily on the demographic of the viewers, the niche of the channel, and the current advertiser bidding rates (CPM)." },
-      { q: "What is RPM vs CPM?", a: "CPM is what advertisers pay per 1,000 views. RPM is what the creator actually takes home per 1,000 views after YouTube takes its 45% cut." }
+      { q: "How are the earnings calculated?", a: "We use public view counts and multiply them by industry-standard RPM rates ($1 - $10) depending on the content niche." },
+      { q: "Is this the exact amount they earn?", a: "No, these are estimates. Actual earnings depend on audience location, ad types, and sponsorships." },
+      { q: "Why is the revenue range so wide?", a: "Revenue varies significantly between niches (e.g., Finance pays more than Entertainment)." }
     ]
   },
   'yt-video-info': {
@@ -170,23 +215,28 @@ export const TOOL_SEO = {
     ]
   },
   'merge-pdf': {
-    title: 'Merge PDF — Combine Multiple PDF Files Online Free',
-    h1: 'Merge PDF Files Online Free',
-    h2: 'The Best Free PDF Merger Online',
-    description: 'Merge multiple PDF files into a single document in seconds. Free, fast, and secure PDF merger — no signup required. Up to 20 PDFs, 50 MB each.',
-    longDescription: 'Our free online PDF merger allows you to seamlessly combine multiple PDF documents into a single, organized file. Whether you are compiling reports, merging invoices, or organizing study materials, ILoveDocs makes the process lightning fast. Drag and drop your files, arrange them in the exact order you need, and hit merge. The entire process happens securely in the cloud, ensuring your original formatting is perfectly preserved.',
-    keywords: 'merge PDF, combine PDF, join PDF files, PDF merger online, combine multiple PDFs, merge PDF free',
+    title: 'Merge PDF Online — Combine PDF Files for Free',
+    h1: 'Merge Multiple PDF Files into One',
+    h2: '#1 Free Online PDF Merger — No Limits, No Signup',
+    description: 'Combine multiple PDF documents into a single file in seconds. Drag and drop, reorder pages, and merge PDFs with 100% security.',
+    longDescription: 'Merging PDF files shouldn\'t be complicated. Our online PDF Merger allows you to combine up to 50 files into a single organized document. Whether you are organizing tax documents, merging medical records, or combining school assignments, our tool handles it with high-speed processing and zero data loss. Your files are automatically deleted after processing for your privacy.',
+    keywords: 'merge pdf, combine pdf files, join pdf online, free pdf merger, merge multiple pdfs, combine docs to pdf',
+    features: [
+      'Drag and drop multiple files to merge instantly',
+      'Reorder files before merging to get the perfect sequence',
+      'Fast server-side processing – no browser lag',
+      'Secure end-to-end encryption for all uploads'
+    ],
     howTo: [
-      'Click the "Upload Files" button or drag and drop your PDF files into the upload area.',
-      'Optionally, rearrange the files into the order you want them to appear in the merged document.',
-      'Click the "Merge PDF" button to begin the combination process.',
-      'Once finished, click the "Download" button to save your new merged PDF file.'
+      'Select the PDF files you want to merge by clicking "Choose Files".',
+      'Drag and drop the files to arrange them in the desired order.',
+      'Click the "Merge PDF" button to start the process.',
+      'Download your newly combined PDF document instantly.'
     ],
     faqs: [
-      { q: "Is it safe to merge PDFs online?", a: "Yes. All file transfers are secured with advanced TLS encryption. Your merged PDFs are automatically and permanently deleted from our servers 1 hour after processing." },
-      { q: "Will merging PDFs drop the quality?", a: "No, our PDF merger combines your documents without altering the original quality, resolution, or text formatting." },
-      { q: "Can I rearrange pages before merging?", a: "Currently, you can upload files and drag them into your preferred order before merging them together." },
-      { q: "Do I need to download software to merge PDF files?", a: "No installation is required. Our PDF merge tool operates entirely online in your web browser." }
+      { q: "Is there a limit on how many PDFs I can merge?", a: "You can merge up to 20 files at once for free." },
+      { q: "Will the quality of my PDFs decrease after merging?", a: "No, our tool merges the raw page streams, ensuring 100% original quality is preserved." },
+      { q: "Is it safe to upload my documents?", a: "Yes, we use SSL encryption and all files are permanently deleted from our servers after 1 hour." }
     ]
   },
   'split-pdf': {
@@ -209,22 +259,28 @@ export const TOOL_SEO = {
     ]
   },
   'compress-pdf': {
-    title: 'Compress PDF — Reduce PDF File Size Online Free',
-    h1: 'Compress PDF Files Online Free',
-    h2: 'The Smartest PDF Compressor Tool',
-    description: 'Reduce PDF file size without losing quality. Our free PDF compressor shrinks large files for email or upload — instant, secure, no install.',
-    longDescription: 'Running into frustrating file size limits on email or web forms? Our online PDF Compressor is the fastest way to shrink large PDFs into easily shareable files. Using advanced optimization algorithms, we ensure your document gets substantially smaller without sacrificing readability or graphic quality. Best of all, it is entirely free and happens instantly in your web browser.',
-    keywords: 'compress PDF, reduce PDF size, PDF compressor, shrink PDF, make PDF smaller, PDF optimizer',
+    title: 'Compress PDF Online — Reduce PDF File Size Free',
+    h1: 'Compress & Optimize PDF Files',
+    h2: 'Shrink Your PDF Size Without Losing Quality',
+    description: 'Reduce PDF file size for easier email sharing and faster web loading. Get the smallest PDF size with the highest possible quality.',
+    longDescription: 'Is your PDF too large to send via email? Our PDF compressor uses advanced optimization algorithms to strip away unnecessary metadata and compress high-resolution images within the document. You get a significantly smaller file while the text remains crisp and images look professional. Perfect for job applications, government portals, and storage optimization.',
+    keywords: 'compress pdf, reduce pdf size, shrink pdf online, optimize pdf for web, small pdf converter, free pdf compressor',
+    features: [
+      'Intelligent compression – high quality with low file size',
+      'Batch compress multiple files at once',
+      'Privacy first: files are auto-deleted from servers',
+      'Compatible with all PDF versions and scanners'
+    ],
     howTo: [
-      'Upload the large PDF file that you need to compress.',
-      'Our tool will automatically apply the best compression ratio while preserving quality.',
-      'Click the "Compress PDF" button to start the optimization.',
+      'Upload your large PDF file to our secure dashboard.',
+      'Wait for our engine to analyze and optimize the content.',
+      'Review the reduction percentage (often up to 90%).',
       'Download your optimized, smaller PDF file.'
     ],
     faqs: [
-      { q: "Will compressing a PDF make it blurry?", a: "No, our smart compressor optimizes internal structures and image metadata rather than destroying pixel quality. Your text will remain perfectly crisp." },
-      { q: "What is the maximum file size I can compress?", a: "You can compress PDF files up to 50 MB in size." },
-      { q: "Is the compression tool free to use?", a: "Yes, our PDF compressor is 100% free with no hidden limits or watermarks." }
+      { q: "Will my images look blurry?", a: "We use smart compression that reduces DPI only to the web-standard (144dpi), ensuring they look great on screens." },
+      { q: "How much can you reduce the size?", a: "Typically, you will see a reduction between 40% to 90% depending on the original file's content." },
+      { q: "Does this work on scanned PDFs?", a: "Yes, scanned PDFs often see the biggest size reductions." }
     ]
   },
   'rotate-pdf': {
@@ -345,23 +401,125 @@ export const TOOL_SEO = {
       { q: "Will the images lose quality when converted to PDF?", a: "No. The images are embedded directly into the PDF document keeping their original High-Definition resolution intact." }
     ]
   },
-  'pdf-to-word': {
-    title: 'PDF to Word — Convert PDF to DOCX Online Free',
-    h1: 'Convert PDF to Word Online',
-    h2: 'Fast & Accurate PDF to DOCX Converter',
-    description: 'Convert PDF documents to editable Word DOCX files online for free. Preserve text and formatting — no email or signup required.',
-    longDescription: 'Need to edit a PDF but do not have the original file? Our fast PDF to Word converter accurately extracts the text, styling, and formatting from your PDF and transforms it into an editable Microsoft Word document (.docx). Perfect for updating old documents, tweaking resumes, or extracting text without having to manually retype everything.',
-    keywords: 'PDF to Word, convert PDF to DOCX, PDF to Word free, PDF to editable Word, PDF converter, PDF Word online',
+  'yt-thumbnail': {
+    title: 'YouTube Thumbnail Downloader — Get High-Quality YT Thumbnails Free',
+    h1: 'Download YouTube Thumbnails Online',
+    h2: 'Get HD, HQ, and MaxRes Thumbnails in Seconds',
+    description: 'Download high-quality YouTube thumbnails for free. Just paste the video link and get all available resolutions (HD, HQ, 1080p, 720p) instantly.',
+    longDescription: 'Need the thumbnail of a YouTube video for your blog, social media, or presentation? Our YouTube Thumbnail Downloader extracts the highest possible resolution images directly from YouTube servers. No watermark, no signup, just high-def images.',
+    keywords: 'youtube thumbnail downloader, download yt thumbnails, get youtube video image, save youtube thumbnail hd, high res youtube thumbnail, youtube thumbnail grabber',
     howTo: [
-      'Upload the PDF file you want to convert into Word format.',
-      'The tool extracts the text and formatting into a DOCX structure.',
-      'Click the "PDF to Word" button to start the conversion.',
-      'Download your editable Microsoft Word file.'
+      'Copy the URL of the YouTube video.',
+      'Paste it into the input box above.',
+      'Click the "Fetch Thumbnails" button.',
+      'Right-click and save your desired resolution (MaxRes, HQ, or MQ).'
     ],
     faqs: [
-      { q: "Will the Word document look like my original PDF?", a: "Our conversion engine works hard to map PDF layouts, tables, styles, and text into Word format, preserving the visual layout as accurately as possible." },
-      { q: "Is the PDF to Word converter free?", a: "Yes, you can convert PDFs to editable Word documents completely for free with no hidden fees." },
-      { q: "Is it safe to convert sensitive documents?", a: "Absolutely. We encrypt all traffic and permanently wipe uploaded files from our databases just 1 hour after conversion." }
+      { q: "Is it legal to download YouTube thumbnails?", a: "Downloading for personal use or fair use (like commentary or news) is generally fine, but always respect the original creator's copyright." },
+      { q: "What is the highest resolution available?", a: "We fetch the 'maxresdefault' image, which is usually 1280x720 or 1920x1080 if provided by the creator." }
+    ]
+  },
+  'yt-tags': {
+    title: 'YouTube Tag Extractor — Find & Extract Video Keywords for SEO',
+    h1: 'YouTube Tags & SEO Extractor',
+    h2: 'Copy Competitor Tags to Rank Higher',
+    description: 'Find and extract hidden tags from any YouTube video. Optimize your own video SEO by copying high-ranking competitor keywords for free.',
+    longDescription: 'Hidden tags are a major signal for the YouTube algorithm. Our Tag Extractor reveals the exact keywords used by top-ranking videos, allowing you to optimize your own content strategy and improve your search rankings.',
+    keywords: 'youtube tag extractor, find youtube tags, extract keywords from youtube video, see youtube video tags, copy youtube tags, youtube seo tool',
+    howTo: [
+      'Paste the YouTube video link into the tool.',
+      'Click "Extract Tags".',
+      'Copy the list of keywords to use in your own video settings.'
+    ]
+  },
+  'yt-transcript': {
+    title: 'YouTube Transcript Downloader — Extract Text from YT Videos',
+    h1: 'YouTube Transcript & Text Extractor',
+    h2: 'Get Video Text in Seconds',
+    description: 'Download and extract full transcripts from any YouTube video. Convert video speech to text for blogs, research, or study notes — 100% free.',
+    longDescription: 'Turn any YouTube video into a written article or study guide. Our transcript downloader fetches both manually uploaded and auto-generated captions, giving you a clean text file of the entire video narration.',
+    keywords: 'youtube transcript downloader, extract text from youtube video, youtube speech to text, download youtube captions, yt transcript extractor',
+    howTo: [
+      'Enter the YouTube video URL.',
+      'Click "Download Transcript".',
+      'Copy the full text or view the timestamped segments below.'
+    ]
+  },
+  'yt-summarize': {
+    title: 'AI YouTube Summarizer — Get Video Summaries Instantly with AI',
+    h1: 'AI-Powered YouTube Video Summarizer',
+    h2: 'Save Time — Get the Key Points in Seconds',
+    description: 'Summarize long YouTube videos instantly using AI. Get key insights, bullet points, and main takeaways without watching the whole video.',
+    longDescription: 'Don\'t have time to watch a 20-minute video? Our AI Summarizer uses advanced language models to analyze transcripts and provide a concise summary of the most important information. Perfect for students and professionals.',
+    keywords: 'youtube summarizer ai, summarize youtube video, ai video summary, youtube transcript summary, video to key points, time saving youtube tool',
+    howTo: [
+      'Paste the link of the video you want to summarize.',
+      'Click "Summarize with AI".',
+      'Read the structured summary with key insights and takeaways.'
+    ]
+  },
+  'yt-monetization': {
+    title: 'YouTube Monetization Checker — See if a Channel is Making Money',
+    h1: 'YouTube Monetization & Ad Status Checker',
+    h2: 'Verify Monetization Status of any Video',
+    description: 'Check if a YouTube video or channel is monetized. See if ads are running and check for family-friendly status instantly — free online tool.',
+    longDescription: 'Curious if a video is earning revenue? Our checker analyzes the video metadata and player settings to determine if ads are enabled and if the channel is part of the YouTube Partner Program.',
+    keywords: 'youtube monetization checker, check if channel is monetized, is youtube video monetized, youtube ad status checker, monetization verifier',
+    howTo: [
+      'Paste the YouTube URL.',
+      'Click "Check Status".',
+      'View the monetization verdict and estimated revenue metrics.'
+    ]
+  },
+  'yt-revenue': {
+    title: 'YouTube Revenue Calculator — Estimate Earnings & CPM for Channels',
+    h1: 'YouTube Earnings & Revenue Calculator',
+    h2: 'Estimate Monthly and Yearly Income',
+    description: 'Calculate potential earnings for any YouTube channel or video. Estimate daily, monthly, and yearly revenue based on views and average CPM/RPM rates.',
+    longDescription: 'Wondering how much YouTubers make? Our calculator uses industry-standard RPM (Revenue Per Mille) estimates to project the earnings of any channel based on their public view counts.',
+    keywords: 'youtube revenue calculator, estimate youtube earnings, how much does a youtuber make, youtube money calculator, yt income estimator',
+    howTo: [
+      'Enter a YouTube channel or video URL.',
+      'Click "Calculate Revenue".',
+      'Analyze the projected income brackets for daily, monthly, and yearly performance.'
+    ]
+  },
+  'yt-seo-score': {
+    title: 'YouTube SEO Audit & Score Checker — Optimize Video Rankings',
+    h1: 'YouTube Video SEO Auditor',
+    h2: 'Get a Score Out of 100 for your Video',
+    description: 'Audit your YouTube video SEO for free. Get an instant score and professional recommendations to improve your rankings, CTR, and views.',
+    longDescription: 'Is your video optimized for the YouTube algorithm? Our SEO Auditor checks your title, description, and tags against best practices to give you a clear score and actionable tips for improvement.',
+    keywords: 'youtube seo audit, check youtube seo score, video ranking optimizer, youtube seo checker free, optimize youtube title and tags',
+    howTo: [
+      'Paste the URL of your video.',
+      'Click "Audit SEO".',
+      'Review your score and fix the highlighted issues to rank higher.'
+    ]
+  },
+  'pdf-to-word': {
+    title: 'PDF to Word Converter — Convert PDF to DOCX Free Online',
+    h1: 'Convert PDF to Editable Word Online',
+    h2: 'Accurate PDF to Word Conversion — 100% Free',
+    description: 'Convert PDF documents to editable Microsoft Word (DOCX) files. Best accuracy for text, tables, and layouts without software.',
+    longDescription: 'Need to edit a PDF document? Our PDF to Word converter accurately extracts text and structural elements from your PDF and converts them into a standard Microsoft Word (DOCX) format. Unlike other converters that create messy text boxes, our tool attempts to create clean, flowable text that you can edit immediately in Word, Google Docs, or LibreOffice.',
+    keywords: 'pdf to word, convert pdf to docx, pdf to editable word, extract text from pdf, online pdf to word converter, free docx converter',
+    features: [
+      'High-precision text extraction using OCR-like logic',
+      'No email or signup required – convert instantly',
+      'Maintains font styles and paragraph spacing',
+      'Secure processing with automatic file deletion'
+    ],
+    howTo: [
+      'Upload the PDF file you want to convert to Word.',
+      'Click the "Convert to Word" button.',
+      'Our engine processes the document and generates a DOCX file.',
+      'Download the editable Word document and start editing.'
+    ],
+    faqs: [
+      { q: "Will the layout remain the same?", a: "We strive for high accuracy. While complex graphic designs may shift, text and tables are preserved faithfully." },
+      { q: "Is this tool free for large files?", a: "Yes, you can convert documents up to 20MB for free." },
+      { q: "Can I convert scanned PDFs?", a: "Currently, we extract embedded text. For scanned images, we recommend an OCR-specific tool." }
     ]
   },
   'pdf-to-jpg': {

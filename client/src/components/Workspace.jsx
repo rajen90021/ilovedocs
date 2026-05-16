@@ -127,6 +127,21 @@ export default function Workspace({ tool, config }) {
     setProgress(0);
     setResult(null);
 
+    const messages = [
+      'Analyzing YouTube metrics...',
+      'Bypassing the matrix...',
+      'Fetching data from the cloud...',
+      'Generating your high-quality result...',
+      'Almost there, finishing touches...',
+      'Optimizing performance...',
+    ];
+    let msgIdx = 0;
+    const msgInterval = setInterval(() => {
+      msgIdx = (msgIdx + 1) % messages.length;
+      const el = document.querySelector('.processing-text');
+      if (el) el.innerText = messages[msgIdx];
+    }, 2500);
+
     const interval = setInterval(() => {
       setProgress(p => Math.min(p + Math.random() * 20, 95));
     }, 400);
@@ -156,7 +171,7 @@ export default function Workspace({ tool, config }) {
       } else {
         const formData = new FormData();
         files.forEach(f => formData.append(config.multi ? 'files' : 'file', f));
-
+        
         // Append dynamic configuration options
         Object.entries(options).forEach(([key, val]) => {
           if (val) formData.append(key, val);
@@ -181,6 +196,7 @@ export default function Workspace({ tool, config }) {
       }
 
       clearInterval(interval);
+      clearInterval(msgInterval);
       setProgress(100);
       setResult({ data: response.data, isFileDownload, downloadFilename });
 

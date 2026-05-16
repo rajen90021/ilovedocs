@@ -4,18 +4,35 @@
   background: white;
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-light);
-  padding: 24px;
+  padding: 28px;
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
   position: relative;
   overflow: hidden;
+  z-index: 1;
+}
+
+.tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--tool-color, var(--brand-primary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .tool-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--brand-primary);
-  box-shadow: 0 12px 24px -4px rgba(239, 68, 68, 0.1);
+  transform: translateY(-8px);
+  border-color: var(--tool-color, var(--brand-primary));
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
+}
+
+.tool-card:hover::before {
+  opacity: 1;
 }
 
 .tool-card__icon-wrap {

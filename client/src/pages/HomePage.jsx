@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import ToolCard from '../components/ToolCard';
 import ContentSection from '../components/ContentSection';
 import SEOHead from '../components/SEOHead';
+import FooterDirectory from '../components/FooterDirectory';
 import { buildWebsiteJsonLd } from '../data/toolSEO';
 import { API_URL } from '../context/AuthContext';
 import './HomePage.css';
@@ -130,6 +131,9 @@ export default function HomePage() {
           </div>
         </section>
       </main>
+
+      {/* Massive Keyword-Rich Directory (SEO Growth) */}
+      <FooterDirectory />
     </div>
   );
 }

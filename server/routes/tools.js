@@ -69,20 +69,26 @@ async function extractPDFText(filePath) {
     const items = content.items
       .filter(item => item && item.transform && item.transform.length >= 6)
       .sort((a, b) => {
-        if (Math.abs(b.transform[5] - a.transform[5]) > 2) {
+        // Higher Y comes first (top of page)
+        if (Math.abs(b.transform[5] - a.transform[5]) > 4) {
           return b.transform[5] - a.transform[5];
         }
+        // Then lower X (left to right)
         return a.transform[4] - b.transform[4];
       });
 
     let pageText = '';
     let lastY = -1;
+    let lastX = -1;
     for (const item of items) {
-      if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > 5) {
+      if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > 6) {
         pageText += '\n';
+      } else if (lastX !== -1 && item.transform[4] - lastX > 10) {
+        pageText += ' ';
       }
-      pageText += (item.str || '') + ' ';
+      pageText += (item.str || '');
       lastY = item.transform[5];
+      lastX = item.transform[4] + (item.width || 0);
     }
     fullText += pageText + '\n\n';
   }
@@ -122,8 +128,9 @@ function wordWrapLines(text, maxWidth, font, fontSize) {
 async function textToPDF(text) {
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const PAGE_W = 595.28, PAGE_H = 841.89;
-  const MX = 50, MY = 60, FS = 10, LH = FS * 1.4;
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const PAGE_W = 595.28, PAGE_H = 841.89; // A4
+  const MX = 60, MY = 70, FS = 10, LH = FS * 1.5;
   const MAX_W = PAGE_W - 2 * MX;
   const LPP = Math.floor((PAGE_H - 2 * MY) / LH);
 
@@ -131,8 +138,17 @@ async function textToPDF(text) {
 
   for (let i = 0; i < Math.max(lines.length, 1); i += LPP) {
     const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
-    page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: rgb(1, 1, 1) });
     const pageLines = lines.slice(i, i + LPP);
+    
+    // Add page number at bottom
+    page.drawText(`Page ${Math.floor(i / LPP) + 1}`, {
+      x: PAGE_W / 2 - 20,
+      y: 30,
+      size: 8,
+      font,
+      color: rgb(0.5, 0.5, 0.5)
+    });
+
     pageLines.forEach((line, j) => {
       if (!line.trim()) return;
       page.drawText(line, {
@@ -140,7 +156,7 @@ async function textToPDF(text) {
         y: PAGE_H - MY - j * LH,
         size: FS,
         font,
-        color: rgb(0, 0, 0),
+        color: rgb(0.1, 0.1, 0.1),
       });
     });
   }

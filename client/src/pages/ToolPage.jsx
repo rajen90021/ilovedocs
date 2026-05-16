@@ -94,6 +94,9 @@ export default function ToolPage() {
             <ToolInfoSection 
               seoData={seoData} 
               toolName={tool.name} 
+              allTools={allTools}
+              category={tool.category}
+              currentToolId={tool.id}
             />
           </div>
         </main>
