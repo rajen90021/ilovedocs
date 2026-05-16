@@ -477,243 +477,53 @@ export const TOOL_SEO = {
       { q: "Will the images lose quality when converted to PDF?", a: "No. The images are embedded directly into the PDF document keeping their original High-Definition resolution intact." }
     ]
   },
-  'yt-thumbnail': {
-    title: 'YouTube Thumbnail Downloader — Get High-Quality YT Thumbnails Free',
-    h1: 'Download YouTube Thumbnails Online',
-    h2: 'Get HD, HQ, and MaxRes Thumbnails in Seconds',
-    description: 'Download high-quality YouTube thumbnails for free. Just paste the video link and get all available resolutions (HD, HQ, 1080p, 720p) instantly.',
-    longDescription: 'Need the thumbnail of a YouTube video for your blog, social media, or presentation? Our YouTube Thumbnail Downloader extracts the highest possible resolution images directly from YouTube servers. No watermark, no signup, just high-def images.',
-    keywords: 'youtube thumbnail downloader, download yt thumbnails, get youtube video image, save youtube thumbnail hd, high res youtube thumbnail, youtube thumbnail grabber',
-    howTo: [
-      'Copy the URL of the YouTube video.',
-      'Paste it into the input box above.',
-      'Click the "Fetch Thumbnails" button.',
-      'Right-click and save your desired resolution (MaxRes, HQ, or MQ).'
-    ],
-    faqs: [
-      { q: "Is it legal to download YouTube thumbnails?", a: "Downloading for personal use or fair use (like commentary or news) is generally fine, but always respect the original creator's copyright." },
-      { q: "What is the highest resolution available?", a: "We fetch the 'maxresdefault' image, which is usually 1280x720 or 1920x1080 if provided by the creator." }
-    ]
-  },
-  'yt-tags': {
-    title: 'YouTube Tag Extractor — Find & Extract Video Keywords for SEO',
-    h1: 'YouTube Tags & SEO Extractor',
-    h2: 'Copy Competitor Tags to Rank Higher',
-    description: 'Find and extract hidden tags from any YouTube video. Optimize your own video SEO by copying high-ranking competitor keywords for free.',
-    longDescription: 'Hidden tags are a major signal for the YouTube algorithm. Our Tag Extractor reveals the exact keywords used by top-ranking videos, allowing you to optimize your own content strategy and improve your search rankings.',
-    keywords: 'youtube tag extractor, find youtube tags, extract keywords from youtube video, see youtube video tags, copy youtube tags, youtube seo tool',
-    howTo: [
-      'Paste the YouTube video link into the tool.',
-      'Click "Extract Tags".',
-      'Copy the list of keywords to use in your own video settings.'
-    ]
-  },
-  'yt-transcript': {
-    title: 'YouTube Transcript Downloader — Extract Text from YT Videos',
-    h1: 'YouTube Transcript & Text Extractor',
-    h2: 'Get Video Text in Seconds',
-    description: 'Download and extract full transcripts from any YouTube video. Convert video speech to text for blogs, research, or study notes — 100% free.',
-    longDescription: 'Turn any YouTube video into a written article or study guide. Our transcript downloader fetches both manually uploaded and auto-generated captions, giving you a clean text file of the entire video narration.',
-    keywords: 'youtube transcript downloader, extract text from youtube video, youtube speech to text, download youtube captions, yt transcript extractor',
-    howTo: [
-      'Enter the YouTube video URL.',
-      'Click "Download Transcript".',
-      'Copy the full text or view the timestamped segments below.'
-    ]
-  },
-  'yt-summarize': {
-    title: 'AI YouTube Summarizer — Get Video Summaries Instantly with AI',
-    h1: 'AI-Powered YouTube Video Summarizer',
-    h2: 'Save Time — Get the Key Points in Seconds',
-    description: 'Summarize long YouTube videos instantly using AI. Get key insights, bullet points, and main takeaways without watching the whole video.',
-    longDescription: 'Don\'t have time to watch a 20-minute video? Our AI Summarizer uses advanced language models to analyze transcripts and provide a concise summary of the most important information. Perfect for students and professionals.',
-    keywords: 'youtube summarizer ai, summarize youtube video, ai video summary, youtube transcript summary, video to key points, time saving youtube tool',
-    howTo: [
-      'Paste the link of the video you want to summarize.',
-      'Click "Summarize with AI".',
-      'Read the structured summary with key insights and takeaways.'
-    ]
-  },
-  'yt-monetization': {
-    title: 'YouTube Monetization Checker — See if a Channel is Making Money',
-    h1: 'YouTube Monetization & Ad Status Checker',
-    h2: 'Verify Monetization Status of any Video',
-    description: 'Check if a YouTube video or channel is monetized. See if ads are running and check for family-friendly status instantly — free online tool.',
-    longDescription: 'Curious if a video is earning revenue? Our checker analyzes the video metadata and player settings to determine if ads are enabled and if the channel is part of the YouTube Partner Program.',
-    keywords: 'youtube monetization checker, check if channel is monetized, is youtube video monetized, youtube ad status checker, monetization verifier',
-    howTo: [
-      'Paste the YouTube URL.',
-      'Click "Check Status".',
-      'View the monetization verdict and estimated revenue metrics.'
-    ]
-  },
-  'yt-revenue': {
-    title: 'YouTube Revenue Calculator — Estimate Earnings & CPM for Channels',
-    h1: 'YouTube Earnings & Revenue Calculator',
-    h2: 'Estimate Monthly and Yearly Income',
-    description: 'Calculate potential earnings for any YouTube channel or video. Estimate daily, monthly, and yearly revenue based on views and average CPM/RPM rates.',
-    longDescription: 'Wondering how much YouTubers make? Our calculator uses industry-standard RPM (Revenue Per Mille) estimates to project the earnings of any channel based on their public view counts.',
-    keywords: 'youtube revenue calculator, estimate youtube earnings, how much does a youtuber make, youtube money calculator, yt income estimator',
-    howTo: [
-      'Enter a YouTube channel or video URL.',
-      'Click "Calculate Revenue".',
-      'Analyze the projected income brackets for daily, monthly, and yearly performance.'
-    ]
-  },
-  'yt-seo-score': {
-    title: 'YouTube SEO Audit & Score Checker — Optimize Video Rankings',
-    h1: 'YouTube Video SEO Auditor',
-    h2: 'Get a Score Out of 100 for your Video',
-    description: 'Audit your YouTube video SEO for free. Get an instant score and professional recommendations to improve your rankings, CTR, and views.',
-    longDescription: 'Is your video optimized for the YouTube algorithm? Our SEO Auditor checks your title, description, and tags against best practices to give you a clear score and actionable tips for improvement.',
-    keywords: 'youtube seo audit, check youtube seo score, video ranking optimizer, youtube seo checker free, optimize youtube title and tags',
-    howTo: [
-      'Paste the URL of your video.',
-      'Click "Audit SEO".',
-      'Review your score and fix the highlighted issues to rank higher.'
-    ]
-  },
-  'pdf-to-word': {
-    title: 'PDF to Word Converter — Convert PDF to DOCX Free Online',
-    h1: 'Convert PDF to Editable Word Online',
-    h2: 'Accurate PDF to Word Conversion — 100% Free',
-    description: 'Convert PDF documents to editable Microsoft Word (DOCX) files. Best accuracy for text, tables, and layouts without software.',
-    longDescription: 'Need to edit a PDF document? Our PDF to Word converter accurately extracts text and structural elements from your PDF and converts them into a standard Microsoft Word (DOCX) format. Unlike other converters that create messy text boxes, our tool attempts to create clean, flowable text that you can edit immediately in Word, Google Docs, or LibreOffice.',
-    keywords: 'pdf to word, convert pdf to docx, pdf to editable word, extract text from pdf, online pdf to word converter, free docx converter',
+  'yt-video-download': {
+    title: 'YouTube Video Downloader HD — Save YT Videos as MP4 Free',
+    h1: 'Download YouTube Videos in High Quality',
+    h2: '#1 Free Online YouTube MP4 Downloader — Fast & Secure',
+    description: 'Download YouTube videos in HD (720p, 1080p, 4K) for free. Save your favorite content as MP4 files for offline viewing. No software, no signup, 100% secure.',
+    longDescription: 'Our professional YouTube Video Downloader is optimized for speed and quality. Whether you need to save a tutorial for offline study or a music video for travel, our tool fetches the highest available bitrate directly from YouTube servers. Supports all public videos, including Shorts and educational content. 100% free, forever.',
+    keywords: 'youtube video downloader, download youtube mp4 hd, save youtube video 1080p, extract yt video free, youtube downloader online',
     features: [
-      'High-precision text extraction using OCR-like logic',
-      'No email or signup required – convert instantly',
-      'Maintains font styles and paragraph spacing',
-      'Secure processing with automatic file deletion'
+      'Download in multiple qualities: 360p, 720p HD, 1080p Full HD',
+      'Fast processing with direct server-side streaming',
+      'No registration or personal information required',
+      'Compatible with all devices: PC, Mac, Android, and iOS'
     ],
     howTo: [
-      'Upload the PDF file you want to convert to Word.',
-      'Click the "Convert to Word" button.',
-      'Our engine processes the document and generates a DOCX file.',
-      'Download the editable Word document and start editing.'
+      'Copy the link of the YouTube video you want to save.',
+      'Paste the URL into the search box above.',
+      'Select your preferred quality from the available options.',
+      'Click the Download button to save the MP4 file to your device.'
     ],
     faqs: [
-      { q: "Will the layout remain the same?", a: "We strive for high accuracy. While complex graphic designs may shift, text and tables are preserved faithfully." },
-      { q: "Is this tool free for large files?", a: "Yes, you can convert documents up to 20MB for free." },
-      { q: "Can I convert scanned PDFs?", a: "Currently, we extract embedded text. For scanned images, we recommend an OCR-specific tool." }
+      { q: "Is it free to download HD videos?", a: "Yes! We provide the highest available resolution for free without any hidden costs." },
+      { q: "What video formats are supported?", a: "We primarily support MP4 as it is the most compatible format across all modern devices." },
+      { q: "Can I download private videos?", a: "No, for security and copyright reasons, we only support public and unlisted videos." }
     ]
   },
-  'pdf-to-jpg': {
-    title: 'PDF to JPG — Convert PDF Pages to Images Online Free',
-    h1: 'Convert PDF to JPG Online',
-    h2: 'Extract High-Quality Images from PDF',
-    description: 'Convert every page of your PDF to high-quality JPG images online. Single-page PDFs download as JPG; multi-page PDFs as a ZIP archive.',
-    longDescription: 'Want to turn a PDF slide into a social media post? Our PDF to JPG converter extracts each page of your document as a high-resolution image file. It handles single and multi-page documents with ease.',
-    keywords: 'PDF to JPG, convert PDF to image, PDF to PNG, PDF page to JPG, extract images from PDF, PDF image converter',
+  'yt-audio-extract': {
+    title: 'YouTube Audio Extractor — Convert YT to MP3 High Bitrate',
+    h1: 'Extract Audio from YouTube Videos',
+    h2: 'High-Quality YouTube to MP3/M4A Converter Online',
+    description: 'Extract high-quality audio from any YouTube video. Convert video to MP3 or M4A (up to 320kbps) instantly. Perfect for podcasts, music, and lectures.',
+    longDescription: 'Turn any YouTube video into a high-fidelity audio file. Our YouTube Audio Extractor pulls the original audio stream without losing quality. Ideal for creators who need background music, students listening to lectures on the go, or podcast fans who want offline access. Fast, clean, and zero quality loss.',
+    keywords: 'youtube audio extractor, convert youtube to mp3, yt to m4a converter, extract music from youtube, high quality youtube audio downloader',
+    features: [
+      'Extract original high-bitrate audio streams',
+      'Choose between MP3 and M4A formats',
+      'Perfect for long-form podcasts and music sets',
+      'One-click processing and instant download'
+    ],
     howTo: [
-      'Upload the PDF document you want to convert into images.',
-      'Click "PDF to JPG" and wait for the conversion to complete.',
-      'Download your images (multi-page files will be in a ZIP archive).'
-    ]
-  },
-  'pdf-to-excel': {
-    title: 'PDF to Excel — Convert PDF Tables to XLSX Online Free',
-    h1: 'Convert PDF to Excel Online',
-    h2: 'Extract PDF Tables to Editable Spreadsheets',
-    description: 'Extract tables and data from PDF files and convert them to Excel XLSX spreadsheets for free. Fast, secure, and no account needed.',
-    longDescription: 'Stop manual data entry. If you have a PDF table, our tool will extract the cellular data and formatting into a perfect Excel spreadsheet. Ideal for financial analysis and data migration.',
-    keywords: 'PDF to Excel, PDF to XLSX, convert PDF to spreadsheet, extract table from PDF, PDF Excel converter free',
-    howTo: [
-      'Select the PDF file containing the data tables.',
-      'Click "PDF to Excel" to start the extraction.',
-      'Download your XLSX file and start editing.'
-    ]
-  },
-  'word-to-pdf': {
-    title: 'Word to PDF — Convert DOCX to PDF Online Free',
-    h1: 'Convert Word to PDF Online',
-    h2: 'Professional DOCX to PDF Conversion',
-    description: 'Convert Microsoft Word DOCX files to PDF documents online for free. Fast conversion with formatting preserved — instant download.',
-    longDescription: 'Ensure your document looks exactly the same on every device by converting it to PDF. Our Word to PDF tool preserves fonts, spacing, and images perfectly.',
-    keywords: 'Word to PDF, DOCX to PDF, convert Word to PDF, Word PDF converter, DOC to PDF online free',
-    howTo: [
-      'Upload your .docx or .doc file.',
-      'Click the "Word to PDF" button.',
-      'Download your professional PDF document.'
-    ]
-  },
-  'excel-to-pdf': {
-    title: 'Excel to PDF — Convert XLSX Spreadsheets to PDF Free',
-    h1: 'Convert Excel to PDF Online',
-    h2: 'Transform Spreadsheets into Clean PDF Reports',
-    description: 'Convert Excel XLSX spreadsheets to clean PDF documents online for free. No Microsoft Office needed — start converting instantly.',
-    longDescription: 'Turn your data into a readable report. Our Excel to PDF converter ensures your tables and charts are formatted correctly for viewing or printing.',
-    keywords: 'Excel to PDF, XLSX to PDF, convert Excel to PDF, spreadsheet to PDF, XLS to PDF free online',
-    howTo: [
-      'Upload your Excel spreadsheet.',
-      'Click "Excel to PDF" to process the conversion.',
-      'Download your PDF report.'
-    ]
-  },
-  'ppt-to-pdf': {
-    title: 'PowerPoint to PDF — Convert PPTX to PDF Online Free',
-    h1: 'Convert PowerPoint to PDF Online',
-    h2: 'Share Your Slides as Portable PDF Files',
-    description: 'Convert PowerPoint PPTX presentations to PDF documents online for free. Share your slides as a portable PDF file without PowerPoint.',
-    longDescription: 'Make your presentations accessible to everyone. By converting PowerPoint slides to PDF, you ensure that they can be viewed on any device without software compatibility issues.',
-    keywords: 'PowerPoint to PDF, PPTX to PDF, convert presentation to PDF, PPT to PDF free, slide to PDF converter',
-    howTo: [
-      'Upload your PPTX or PPT file.',
-      'Click "PowerPoint to PDF".',
-      'Download your slides as a single PDF.'
-    ]
-  },
-  'html-to-pdf': {
-    title: 'HTML to PDF — Convert Web Pages to PDF Online Free',
-    h1: 'Convert HTML to PDF Online',
-    h2: 'Save Webpages as Offline PDF Documents',
-    description: 'Convert HTML files and web pages to PDF documents online for free. Upload your HTML file and receive a clean, printable PDF instantly.',
-    longDescription: 'Archive web content or save online articles for later reading. Our HTML to PDF tool renders code into a clean document format.',
-    keywords: 'HTML to PDF, convert webpage to PDF, HTML file to PDF, web page PDF converter, HTML PDF online free',
-    howTo: [
-      'Upload your .html file.',
-      'Click "HTML to PDF".',
-      'Download your PDF snapshot.'
-    ]
-  },
-  'compress-image': {
-    title: 'Compress Image — Reduce Image File Size Online Free',
-    h1: 'Compress Images Online Free',
-    h2: 'Fast JPG, PNG, & WebP Compression',
-    description: 'Compress JPG, PNG, and WebP images online for free. Reduce file size up to 80% while maintaining visual quality — instant, no signup.',
-    longDescription: 'Speed up your website and save storage space. Our image compressor uses smart techniques to shrink images without making them look pixelated or blurry.',
-    keywords: 'compress image, reduce image size, image compressor, optimize image, shrink photo, JPG PNG compressor free',
-    howTo: [
-      'Upload the images you want to shrink.',
-      'Click "Compress Image".',
-      'Download your optimized images.'
-    ]
-  },
-  'resize-image': {
-    title: 'Resize Image — Change Image Dimensions Online Free',
-    h1: 'Resize Images Online Free',
-    h2: 'Custom Dimensions for Any Purpose',
-    description: 'Resize JPG, PNG, and WebP images to any dimension online for free. Maintain aspect ratio or set custom width and height — instant download.',
-    longDescription: 'Get the exact dimensions you need for social media, print, or web design. Our resizer lets you scale images precisely while keeping things crisp.',
-    keywords: 'resize image, change image size, image resizer online, scale image, crop resize photo free, image dimensions',
-    howTo: [
-      'Upload your image file.',
-      'Enter the new width and height.',
-      'Click "Resize Image" and download the result.'
-    ]
-  },
-  'convert-image': {
-    title: 'Convert Image — Convert JPG PNG WebP BMP Online Free',
-    h1: 'Convert Image Formats Online',
-    h2: 'The Ultimate Image Format Converter',
-    description: 'Convert images between JPG, PNG, WebP, BMP, GIF, and TIFF formats online for free. Fast image format converter — no account, no software.',
-    longDescription: 'Swap between image formats in a heart beat. Whether you need a transparent PNG or a lightweight WebP, our converter handles it all in high quality.',
-    keywords: 'convert image, image converter, JPG to PNG, PNG to WebP, WebP to JPG, BMP to PNG, image format converter free',
-    howTo: [
-      'Upload the image or image sets.',
-      'Choose your desired output format.',
-      'Click "Convert Image".',
-      'Download your new files.'
+      'Find the YouTube video you want to extract audio from.',
+      'Paste the URL into our audio extraction tool.',
+      'Click Extract Audio to begin the conversion process.',
+      'Download the final audio file to your phone or computer.'
+    ],
+    faqs: [
+      { q: "What is the audio quality?", a: "We extract the highest bitrate available from the source, typically 128kbps to 256kbps for crystal clear sound." },
+      { q: "Does this work for YouTube Music?", a: "Yes, you can extract audio from any public video on the YouTube platform." }
     ]
   },
 };

@@ -19,6 +19,18 @@ const ARTICLES = [
     desc: "Check if any YouTube channel is monetized and calculate estimated daily earnings. Use our Revenue Calculator to project potential income based on views and niche-specific RPMs.",
     icon: <BarChart3 size={24} />,
     color: "green"
+  },
+  {
+    title: "YouTube Video Downloader HD",
+    desc: "Download YouTube videos in HD (720p, 1080p, 4K) for free. Save your favorite content as high-quality MP4 files for offline viewing on any device.",
+    icon: <Play size={24} />,
+    color: "purple"
+  },
+  {
+    title: "YouTube Audio Extractor",
+    desc: "Extract high-quality audio from any YouTube video. Convert video to MP3 or M4A instantly. Perfect for podcasts, music, and lectures.",
+    icon: <Play size={24} />,
+    color: "orange"
   }
 ];
 

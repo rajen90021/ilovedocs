@@ -73,7 +73,11 @@ export default function Workspace({ tool, config }) {
     multiple: config?.multi,
   });
 
-  const handleProcess = async () => {
+  const handleProcess = async (eOrItag) => {
+    let overrideItag = null;
+    if (eOrItag && !eOrItag.nativeEvent && typeof eOrItag !== 'object') {
+      overrideItag = eOrItag;
+    }
     const isUrl = config?.type === 'url';
     if (isUrl) {
       if (!url || !url.trim()) {
@@ -195,10 +199,21 @@ export default function Workspace({ tool, config }) {
         if (shouldReturnFile) {
           // Pass selected itag if available
           const payload = { url };
-          if (selectedItag) payload.itag = selectedItag;
+          if (overrideItag) payload.itag = overrideItag;
+          else if (selectedItag) payload.itag = selectedItag;
           
           const fullUrl = getFullUrl(tool.endpoint);
-          response = await axios.post(fullUrl, payload, { responseType: 'blob' });
+          response = await axios.post(fullUrl, payload, { 
+            responseType: 'blob',
+            onDownloadProgress: (progressEvent) => {
+              if (progressEvent.total) {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                setProgress(percentCompleted);
+              } else {
+                setProgress(prev => Math.min(prev + 1, 95));
+              }
+            }
+          });
           isFileDownload = true;
           
           const contentDisposition = response.headers['content-disposition'];
@@ -259,20 +274,39 @@ export default function Workspace({ tool, config }) {
         }
       }
 
-      clearInterval(interval);
       clearInterval(msgInterval);
       setProgress(100);
       
       let fileUrl = null;
       if (isFileDownload) {
         fileUrl = window.URL.createObjectURL(new Blob([response.data]));
+        // Auto-trigger download for better UX
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.setAttribute('download', downloadFilename);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
       }
 
       setResult({ data: response.data, isFileDownload, downloadFilename, fileUrl });
       toast.success(`${tool.name} complete!`);
     } catch (err) {
       let status = err.response?.status;
-      let errorData = err.response?.data?.error || 'Processing failed. Please try again.';
+      let errorData = 'Processing failed. Please try again.';
+
+      // Handle Blob errors (occur when responseType is 'blob')
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          errorData = json.error || json.message || errorData;
+        } catch (e) {
+          console.error('Failed to parse error blob', e);
+        }
+      } else {
+        errorData = err.response?.data?.error || err.response?.data?.message || errorData;
+      }
 
       // Map errors to user-friendly UI states
       let errorState = {
@@ -480,27 +514,51 @@ export default function Workspace({ tool, config }) {
                     )}
 
                     {tool.id === 'yt-video-download' && videoInfo && (
-                      <div className="options-grid">
-                        <div className="video-preview-card" style={{ gridColumn: 'span 2', display: 'flex', gap: '16px', padding: '12px', background: 'rgba(0,0,0,0.03)', borderRadius: '12px', marginBottom: '8px' }}>
-                          <img src={videoInfo.thumbnail} alt="preview" style={{ width: '120px', height: '68px', borderRadius: '8px', objectFit: 'cover' }} />
+                      <div className="y2mate-container" style={{ marginTop: '16px' }}>
+                        <div className="y2mate-header" style={{ display: 'flex', gap: '20px', background: 'var(--bg-subtle)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-light)', marginBottom: '24px' }}>
+                          <img src={videoInfo.thumbnail} alt="preview" style={{ width: '180px', borderRadius: '8px', objectFit: 'cover', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <h4 style={{ fontSize: '0.9rem', margin: 0, color: 'var(--text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{videoInfo.title}</h4>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{videoInfo.author}</span>
+                            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0 0 8px 0', color: 'var(--text-main)', lineHeight: '1.4' }}>{videoInfo.title}</h3>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{videoInfo.author}</span>
                           </div>
                         </div>
-                        <div className="option-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px', gridColumn: 'span 2' }}>
-                          <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Select Download Quality</label>
-                          <select 
-                            value={selectedItag || ''} 
-                            onChange={e => setSelectedItag(e.target.value)} 
-                            style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)', fontSize: '0.9rem', background: 'white' }}
-                          >
-                            {videoInfo.qualities.map(q => (
-                              <option key={q.itag} value={q.itag}>
-                                {q.quality} {q.fps > 30 ? `(${q.fps}fps)` : ''} — {q.size} ({q.container})
-                              </option>
-                            ))}
-                          </select>
+
+                        <div className="y2mate-table-container" style={{ background: 'white', borderRadius: '12px', border: '1px solid var(--border-light)', overflow: 'hidden' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                            <thead>
+                              <tr style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-light)' }}>
+                                <th style={{ padding: '16px', fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>Quality / Resolution</th>
+                                <th style={{ padding: '16px', fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>File Size</th>
+                                <th style={{ padding: '16px', fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem', textAlign: 'right' }}>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {videoInfo.qualities.map(q => (
+                                <tr key={q.itag} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                                  <td style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ background: 'var(--brand-primary-light)', color: 'var(--brand-primary)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
+                                      {q.container.toUpperCase()}
+                                    </div>
+                                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>
+                                      {q.quality} {q.fps > 30 ? <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 500 }}>{q.fps}fps</span> : ''}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: '16px', color: 'var(--text-soft)', fontSize: '0.9rem', fontWeight: 500 }}>
+                                    {q.size}
+                                  </td>
+                                  <td style={{ padding: '16px', textAlign: 'right' }}>
+                                    <button 
+                                      className="btn btn-primary btn-sm" 
+                                      onClick={() => handleProcess(q.itag)}
+                                      style={{ display: 'inline-flex', padding: '8px 20px', fontSize: '0.85rem', fontWeight: 600, borderRadius: '8px' }}
+                                    >
+                                      <Icons.Download size={14} style={{ marginRight: '6px' }} /> Download
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
                     )}
@@ -511,16 +569,18 @@ export default function Workspace({ tool, config }) {
                   </div>
 
                   <div className="process-btn-row">
-                    <button className="btn btn-primary btn-process-main" onClick={handleProcess} disabled={fetchingInfo}>
-                      {fetchingInfo ? (
-                        <>Analyzing... <Icons.Loader2 className="spin" size={16} /></>
-                      ) : (
-                        videoInfo ? <>Start Download <Icons.Download size={16} /></> : <>Analyze Link <Icons.Zap size={16} /></>
-                      )}
-                    </button>
+                    {!(tool.id === 'yt-video-download' && videoInfo) && (
+                      <button className="btn btn-primary btn-process-main" onClick={() => handleProcess()} disabled={fetchingInfo}>
+                        {fetchingInfo ? (
+                          <>Analyzing... <Icons.Loader2 className="spin" size={16} /></>
+                        ) : (
+                          videoInfo ? <>Start Download <Icons.Download size={16} /></> : <>Analyze Link <Icons.Zap size={16} /></>
+                        )}
+                      </button>
+                    )}
                     {videoInfo && (
-                      <button className="btn btn-glass" onClick={() => setVideoInfo(null)} style={{ marginLeft: '12px' }}>
-                        Change Link
+                      <button className="btn btn-glass" onClick={() => setVideoInfo(null)} style={{ marginLeft: tool.id === 'yt-video-download' ? '0' : '12px', width: tool.id === 'yt-video-download' ? '100%' : 'auto', marginTop: tool.id === 'yt-video-download' ? '16px' : '0' }}>
+                        <Icons.Search size={16} style={{ marginRight: '6px' }} /> Search Another Video
                       </button>
                     )}
                   </div>

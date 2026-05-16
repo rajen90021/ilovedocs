@@ -127,57 +127,87 @@
   <!-- ═══ YouTube Tools ═══ -->
   <url>
     <loc>https://ilovedocs.in/tools/yt-thumbnail</loc>
-    <lastmod>2026-04-15</lastmod>
+    <lastmod>2026-05-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://ilovedocs.in/tools/yt-tags</loc>
-    <lastmod>2026-04-15</lastmod>
+    <lastmod>2026-05-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://ilovedocs.in/tools/yt-transcript</loc>
-    <lastmod>2026-04-15</lastmod>
+    <lastmod>2026-05-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://ilovedocs.in/tools/yt-region</loc>
-    <lastmod>2026-04-15</lastmod>
+    <lastmod>2026-05-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ilovedocs.in/tools/yt-summarize</loc>
-    <lastmod>2026-04-15</lastmod>
+    <lastmod>2026-05-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://ilovedocs.in/tools/yt-monetization</loc>
-    <lastmod>2026-04-15</lastmod>
+    <lastmod>2026-05-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://ilovedocs.in/tools/yt-seo-score</loc>
-    <lastmod>2026-04-15</lastmod>
+    <lastmod>2026-05-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ilovedocs.in/tools/yt-revenue</loc>
-    <lastmod>2026-04-15</lastmod>
+    <lastmod>2026-05-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ilovedocs.in/tools/yt-video-info</loc>
-    <lastmod>2026-04-15</lastmod>
+    <lastmod>2026-05-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ilovedocs.in/tools/yt-to-doc</loc>
+    <lastmod>2026-05-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ilovedocs.in/tools/yt-to-pdf</loc>
+    <lastmod>2026-05-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ilovedocs.in/tools/yt-to-markdown</loc>
+    <lastmod>2026-05-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ilovedocs.in/tools/yt-video-download</loc>
+    <lastmod>2026-05-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://ilovedocs.in/tools/yt-audio-extract</loc>
+    <lastmod>2026-05-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
   </url>
 
   <!-- ═══ Image Tools ═══ -->

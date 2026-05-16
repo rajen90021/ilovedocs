@@ -5,6 +5,60 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = require('docx');
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 const ytdl = require('@distube/ytdl-core');
+const { Innertube, UniversalCache, Platform, Parser } = require('youtubei.js');
+
+// 🛡️ Global Parser Shield: Prevent non-fatal parsing errors from crashing the app
+// YouTube frequently changes UI components that youtubei.js hasn't mapped yet.
+// This shield ensures these mismatches are treated as warnings, not fatal crashes.
+if (Parser && !Parser.shield_active) {
+  try {
+    if (typeof Parser.setParserErrorHandler === 'function') {
+      Parser.setParserErrorHandler((context) => {
+        if (context.error_type === 'typecheck') {
+          console.warn('[Parser Shield] Handled UI mismatch:', context.classname);
+          return; // Skip this item and continue
+        }
+        if (context.error) {
+          console.error('[Parser Shield] Unexpected error:', context.error.message);
+        }
+      });
+    } else {
+      // Fallback for older versions or different builds
+      const originalError = Parser.ERROR_HANDLER;
+      Parser.ERROR_HANDLER = (error) => {
+        if (error && error.message && error.message.includes('Type mismatch')) {
+          console.warn('[Parser Shield] Suppressed UI mismatch:', error.message.split('\n')[0]);
+          return;
+        }
+        return originalError ? originalError(error) : undefined;
+      };
+    }
+    Parser.shield_active = true;
+  } catch (e) {
+    console.error('[Parser Shield] Failed to initialize:', e.message);
+  }
+}
+
+// ⚡ Global Engine Hardening: Use native Function constructor
+// This is critical for handling YouTube's signature deciphering scripts which 
+// often contain 'return' statements that standard 'eval' or 'vm' might reject.
+if (Platform && Platform.shim && !Platform.shim.eval_overridden) {
+  Platform.shim.eval = (data, args) => {
+    try {
+      const keys = Object.keys(args);
+      const values = Object.values(args);
+      const fn = new Function(...keys, data.output);
+      return fn(...values);
+    } catch (e) {
+      try {
+        return (new Function(data.output))();
+      } catch (inner) {
+        throw e;
+      }
+    }
+  };
+  Platform.shim.eval_overridden = true;
+}
 
 // ── Helper: Extract Video ID ─────────────────────────────────
 function getVideoId(url) {
@@ -192,137 +246,66 @@ const safeMatch = (html, regex, index = 1, fallback = 'Unknown') => {
 
 // ── Helper: Fetch YouTube transcript (tries multiple methods) ────────
 async function fetchTranscript(videoId) {
-  // Method 1: InnerTube API (most reliable for captions)
-  const clients = [
-    {
-      name: 'WEB',
-      body: {
-        context: {
-          client: {
-            clientName: 'WEB',
-            clientVersion: '2.20241015.01.00',
-            hl: 'en',
-            gl: 'US',
-            utcOffsetMinutes: 0,
-          },
-        },
-        videoId,
-      },
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-        'X-YouTube-Client-Name': '1',
-        'X-YouTube-Client-Version': '2.20241015.01.00',
-        'Origin': 'https://www.youtube.com',
-        'Referer': `https://www.youtube.com/watch?v=${videoId}`,
-      },
-    },
-    {
-      name: 'ANDROID',
-      body: {
-        context: {
-          client: {
-            clientName: 'ANDROID',
-            clientVersion: '19.42.34',
-            hl: 'en',
-            gl: 'US',
-          },
-        },
-        videoId,
-      },
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'com.google.android.youtube/19.42.34 (Linux; U; Android 14; en_US; Pixel 8 Pro Build/AP1A.240305.019)',
-        'X-YouTube-Client-Name': '3',
-        'X-YouTube-Client-Version': '19.42.34',
-      },
-    },
-    {
-      name: 'TVHTML5',
-      body: {
-        context: {
-          client: {
-            clientName: 'TVHTML5',
-            clientVersion: '7.20241015.01.00',
-            hl: 'en',
-            gl: 'US',
-          },
-        },
-        videoId,
-      },
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (SMART-TV; Linux; Tizen 5.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/2.2 Chrome/130.0.0.0 TV Safari/537.36',
-        'X-YouTube-Client-Name': '7',
-        'X-YouTube-Client-Version': '7.20241015.01.00',
-      },
-    },
-  ];
-
-  for (const client of clients) {
-    try {
-      const res = await axios.post(
-        'https://www.youtube.com/youtubei/v1/player?prettyPrint=false',
-        client.body,
-        { headers: client.headers, timeout: 20000 }
-      );
-
-      const tracks = res.data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-      if (!tracks || tracks.length === 0) continue;
-
-      // Prefer English, then auto-generated (asr), then first available
-      const track =
-        tracks.find(t => t.languageCode === 'en' && !t.kind) ||
-        tracks.find(t => t.languageCode === 'en') ||
-        tracks.find(t => !t.kind) ||
-        tracks[0];
-
-      if (!track || !track.baseUrl) continue;
-
-      const captionUrl = track.baseUrl;
-      const captionRes = await axios.get(captionUrl, { timeout: 15000 });
-      const xml = captionRes.data;
-
-      // Parse segments from XML
-      const segments = [];
-      const regex = /<text start="([^"]*)" dur="([^"]*)"[^>]*>([\s\S]*?)<\/text>/g;
-      let m;
-      while ((m = regex.exec(xml)) !== null) {
-        const text = m[3]
-          .replace(/<[^>]+>/g, '')
-          .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'")
-          .replace(/&#\d+;/g, c => String.fromCharCode(parseInt(c.match(/\d+/)[0])))
-          .trim();
-        if (text) segments.push({ text, offset: parseFloat(m[1]) * 1000, duration: parseFloat(m[2]) * 1000 });
-      }
-
-      if (segments.length > 0) return segments;
-    } catch (e) {
-      console.error(`[fetchTranscript][${client.name}]`, e.message);
-    }
-  }
-
-  // Method 2: Scrape caption URL from the HTML page
   try {
-    const html = await fetchPage(`https://www.youtube.com/watch?v=${videoId}`);
-    const captionTrackMatch = html.match(/"captionTracks":\s*\[({[^[]*?"baseUrl":"([^"]+)")/);
-    if (captionTrackMatch) {
-      const captionUrl = captionTrackMatch[2].replace(/\\u0026/g, '&');
-      const captionRes = await axios.get(captionUrl, { timeout: 15000 });
-      const segments = [];
-      const regex = /<text start="([^"]*)" dur="([^"]*)"[^>]*>([\s\S]*?)<\/text>/g;
-      let m;
-      while ((m = regex.exec(captionRes.data)) !== null) {
-        const text = m[3].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
-        if (text) segments.push({ text, offset: parseFloat(m[1]) * 1000, duration: parseFloat(m[2]) * 1000 });
+    // Method 0: Innertube (most robust)
+    const yt = await Innertube.create({ 
+      cache: new UniversalCache(false), 
+      generate_session_locally: true,
+      client_type: 'ANDROID'
+    });
+    
+    const info = await yt.getInfo(videoId, { client: 'ANDROID' });
+    try {
+      const transcriptData = await info.getTranscript();
+      if (transcriptData && transcriptData.transcript?.content?.body?.initial_segments) {
+        return transcriptData.transcript.content.body.initial_segments.map(s => ({
+          text: s.snippet?.text || '',
+          offset: parseInt(s.start_ms || '0'),
+          duration: parseInt(s.duration_ms || '0')
+        })).filter(s => s.text);
       }
-      if (segments.length > 0) return segments;
+    } catch (tErr) {
+      console.warn('[fetchTranscript][Innertube] Failed:', tErr.message);
     }
-  } catch (e) {
-    console.error('[fetchTranscript][HTML-fallback]', e.message);
-  }
 
+    // Method 1: Manual InnerTube API fallbacks
+    const clients = [
+      {
+        name: 'WEB',
+        body: { context: { client: { clientName: 'WEB', clientVersion: '2.20241015.01.00', hl: 'en', gl: 'US' } }, videoId },
+        headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' }
+      },
+      {
+        name: 'ANDROID',
+        body: { context: { client: { clientName: 'ANDROID', clientVersion: '19.42.34', hl: 'en', gl: 'US' } }, videoId },
+        headers: { 'Content-Type': 'application/json', 'User-Agent': 'com.google.android.youtube/19.42.34' }
+      }
+    ];
+
+    for (const client of clients) {
+      try {
+        const res = await axios.post('https://www.youtube.com/youtubei/v1/player', client.body, { headers: client.headers, timeout: 10000 });
+        const tracks = res.data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+        if (!tracks || tracks.length === 0) continue;
+
+        const track = tracks.find(t => t.languageCode === 'en' && !t.kind) || tracks[0];
+        if (!track || !track.baseUrl) continue;
+
+        const captionRes = await axios.get(track.baseUrl, { timeout: 10000 });
+        const xml = captionRes.data;
+        const segments = [];
+        const regex = /<text start="([^"]*)" dur="([^"]*)"[^>]*>([\s\S]*?)<\/text>/g;
+        let m;
+        while ((m = regex.exec(xml)) !== null) {
+          const text = m[3].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").trim();
+          if (text) segments.push({ text, offset: parseFloat(m[1]) * 1000, duration: parseFloat(m[2]) * 1000 });
+        }
+        if (segments.length > 0) return segments;
+      } catch (e) {}
+    }
+  } catch (err) {
+    console.error('[fetchTranscript] Critical Error:', err.message);
+  }
   return null;
 }
 
@@ -910,40 +893,19 @@ router.post('/download-video', async (req, res) => {
 
     console.log(`[Innertube] Processing Video: ${videoId} (itag: ${itag || 'best'})`);
 
-    const { Innertube, UniversalCache, Platform, Parser } = require('youtubei.js');
-
-    // 🛡️ Parser Shield: Prevent non-fatal parsing errors from crashing
-    if (!Parser.shield_active) {
-      const originalError = Parser.ERROR_HANDLER;
-      Parser.ERROR_HANDLER = (error) => {
-        if (error.message?.includes('Type mismatch')) return;
-        return originalError(error);
-      };
-      Parser.shield_active = true;
-    }
-    
-    // ⚡ Ultra-Reliable Engine: Use native Function constructor (Handles 'return' statements perfectly)
-    if (Platform.shim && !Platform.shim.eval_overridden) {
-      Platform.shim.eval = (data, args) => {
-        try {
-          const keys = Object.keys(args);
-          const values = Object.values(args);
-          const fn = new Function(...keys, data.output);
-          return fn(...values);
-        } catch (e) {
-          // Fallback to direct execution if possible
-          return (new Function(data.output))();
-        }
-      };
-      Platform.shim.eval_overridden = true;
-    }
-
     const yt = await Innertube.create({ 
       cache: new UniversalCache(false), 
-      generate_session_locally: true
+      generate_session_locally: true,
+      client_type: 'ANDROID'
     });
-    
-    const info = await yt.getInfo(videoId);
+
+    let info;
+    try {
+      info = await yt.getInfo(videoId, { client: 'ANDROID' });
+    } catch (infoErr) {
+      console.warn('[Innertube] getInfo (download) failed, falling back to getBasicInfo:', infoErr.message);
+      info = await yt.getBasicInfo(videoId, { client: 'ANDROID' });
+    }
     
     // Explicitly find the format by itag if provided
     let format;
@@ -951,15 +913,18 @@ router.post('/download-video', async (req, res) => {
 
     if (itag) {
       const itagInt = parseInt(itag);
-      const allFormats = (info.streaming_data?.formats || []).concat(info.streaming_data?.adaptive_formats || []);
-      format = allFormats.find(f => f.itag === itagInt);
-      downloadOptions = { itag: itagInt };
-      console.log(`[Innertube] Selected Format: itag=${itagInt}, quality=${format?.quality_label}`);
+      const allFormats = [
+        ...(info.streaming_data?.formats || []),
+        ...(info.streaming_data?.adaptive_formats || [])
+      ];
+      format = allFormats.find(f => Number(f.itag) === itagInt);
+      downloadOptions = { itag: itagInt, client: 'ANDROID' };
+      console.log(`[Innertube] Selected Format: itag=${itagInt}, quality=${format?.quality_label || 'best'}`);
     }
 
     if (!format) {
       // Fallback or default
-      downloadOptions = { type: 'video+audio', quality: 'best', format: 'mp4' };
+      downloadOptions = { type: 'video+audio', quality: 'best', format: 'mp4', client: 'ANDROID' };
       format = info.chooseFormat(downloadOptions);
     }
 
@@ -968,28 +933,33 @@ router.post('/download-video', async (req, res) => {
     const cleanTitle = (info.basic_info.title || 'video').replace(/[^a-z0-9]/gi, '_').toLowerCase();
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.mp4"`);
+    if (format.content_length) {
+      res.setHeader('Content-Length', format.content_length);
+    }
 
-    const stream = await info.download(downloadOptions);
+    const webStream = await info.download(downloadOptions);
 
-    // Convert WebStream to Node.js Readable stream
     const { Readable } = require('stream');
-    const reader = stream.getReader();
-    
-    const nodeStream = new Readable({
-      async read() {
-        const { done, value } = await reader.read();
-        if (done) {
-          this.push(null);
-        } else {
-          this.push(Buffer.from(value));
-        }
+    const nodeStream = Readable.fromWeb(webStream);
+
+    nodeStream.on('error', (err) => {
+      console.error('Stream error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: 'Streaming failed',
+          message: err.message
+        });
       }
     });
 
     nodeStream.pipe(res);
 
   } catch (err) {
-    console.error('[Innertube] Video Error:', err.message);
+    const logMsg = `[Innertube] Video Error: ${err.message}\nStack: ${err.stack}\n`;
+    console.error(logMsg);
+    // Log to a file for easier debugging in the routes folder
+    require('fs').appendFileSync(require('path').join(__dirname, 'youtube_debug.log'), logMsg);
+    
     res.status(500).json({ 
       error: 'Processing Failed',
       message: err.message.includes('403') ? 'YouTube is currently restricting access to this video.' : err.message
@@ -1008,59 +978,69 @@ router.post('/extract-audio', async (req, res) => {
 
     console.log(`[Innertube] Processing Audio: ${videoId}`);
 
-    const { Innertube, UniversalCache, Platform } = require('youtubei.js');
-    const vm = require('vm');
-    
-    // Core Engine Override
-    if (Platform.shim && !Platform.shim.eval_overridden) {
-      Platform.shim.eval = (data, args) => {
-        const script = new vm.Script(`(function() { ${data.output} })()`);
-        const context = vm.createContext({
-          Object, JSON, RegExp, Proxy, Symbol, Error, console, Math, String, Number, Array, Date,
-          ...args
-        });
-        return script.runInContext(context);
-      };
-      Platform.shim.eval_overridden = true;
-    }
-
     const yt = await Innertube.create({ 
       cache: new UniversalCache(false), 
-      generate_session_locally: true
+      generate_session_locally: true,
+      client_type: 'ANDROID'
     });
+
+    let info;
+    try {
+      info = await yt.getInfo(videoId, { client: 'ANDROID' });
+    } catch (infoErr) {
+      console.warn('[Innertube] getInfo (audio) failed, falling back to getBasicInfo:', infoErr.message);
+      info = await yt.getBasicInfo(videoId, { client: 'ANDROID' });
+    }
+    const allFormats = [
+      ...(info.streaming_data?.formats || []),
+      ...(info.streaming_data?.adaptive_formats || [])
+    ];
     
-    const info = await yt.getInfo(videoId);
-    const format = info.chooseFormat({ type: 'audio', quality: 'best' });
+    // Filter for audio-only formats and sort by bitrate
+    const audioFormats = allFormats
+      .filter(f => !f.has_video && f.has_audio)
+      .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
+    
+    const format = audioFormats[0] || info.chooseFormat({ type: 'audio', quality: 'best', client: 'ANDROID' });
 
     if (!format) throw new Error('No audio streams found.');
 
     const cleanTitle = (info.basic_info.title || 'audio').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.mp3"`);
+    
+    // Correct mime and extension detection
+    const mimeType = format.mime_type?.split(';')[0] || 'audio/mpeg';
+    const extension = mimeType.includes('mp4') || mimeType.includes('m4a') ? 'm4a' : 'webm';
 
-    const stream = await info.download({
-      type: 'audio',
-      quality: 'best'
-    });
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.${extension}"`);
+    if (format.content_length) {
+      res.setHeader('Content-Length', format.content_length);
+    }
+
+    console.log(`[Innertube] Downloading Audio: itag=${format.itag}, bitrate=${format.bitrate}, mime=${mimeType}`);
+
+    const webStream = await info.download({ itag: format.itag, client: 'ANDROID' });
 
     const { Readable } = require('stream');
-    const reader = stream.getReader();
-    
-    const nodeStream = new Readable({
-      async read() {
-        const { done, value } = await reader.read();
-        if (done) {
-          this.push(null);
-        } else {
-          this.push(Buffer.from(value));
-        }
+    const nodeStream = Readable.fromWeb(webStream);
+
+    nodeStream.on('error', (err) => {
+      console.error('[Innertube] Audio Stream Error:', err.message);
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: 'Streaming failed',
+          message: err.message
+        });
       }
     });
 
     nodeStream.pipe(res);
 
   } catch (err) {
-    console.error('[Innertube] Audio Error:', err.message);
+    const logMsg = `[Innertube] Audio Error: ${err.message}\nStack: ${err.stack}\n`;
+    console.error(logMsg);
+    require('fs').appendFileSync(require('path').join(__dirname, 'youtube_debug.log'), logMsg);
+
     res.status(500).json({ 
       error: 'Extraction Failed',
       message: err.message
@@ -1077,40 +1057,19 @@ router.post('/video-info', async (req, res) => {
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    const { Innertube, UniversalCache, Platform, Parser } = require('youtubei.js');
-    
-    // 🛡️ Parser Shield: Prevent non-fatal parsing errors from crashing
-    if (!Parser.shield_active) {
-      const originalError = Parser.ERROR_HANDLER;
-      Parser.ERROR_HANDLER = (error) => {
-        if (error.message?.includes('Type mismatch')) return;
-        return originalError(error);
-      };
-      Parser.shield_active = true;
-    }
-
-    // ⚡ Ultra-Reliable Engine: Use native Function constructor (Handles 'return' statements perfectly)
-    if (Platform.shim && !Platform.shim.eval_overridden) {
-      Platform.shim.eval = (data, args) => {
-        try {
-          const keys = Object.keys(args);
-          const values = Object.values(args);
-          const fn = new Function(...keys, data.output);
-          return fn(...values);
-        } catch (e) {
-          // Fallback to direct execution if possible
-          return (new Function(data.output))();
-        }
-      };
-      Platform.shim.eval_overridden = true;
-    }
-
     const yt = await Innertube.create({ 
       cache: new UniversalCache(false), 
-      generate_session_locally: true
+      generate_session_locally: true,
+      client_type: 'ANDROID'
     });
 
-    const info = await yt.getInfo(videoId);
+    let info;
+    try {
+      info = await yt.getInfo(videoId, { client: 'ANDROID' });
+    } catch (infoErr) {
+      console.warn('[Innertube] getInfo failed, falling back to getBasicInfo:', infoErr.message);
+      info = await yt.getBasicInfo(videoId, { client: 'ANDROID' });
+    }
     
     // Extract available formats (only those with a valid URL or cipher)
     const formats = (info.streaming_data?.formats || [])
@@ -1136,9 +1095,19 @@ router.post('/video-info', async (req, res) => {
 
     res.json({
       title: info.basic_info.title,
-      thumbnail: info.basic_info.thumbnail[0].url,
-      duration: info.basic_info.duration,
-      author: info.basic_info.author,
+      thumbnail: info.basic_info.thumbnail?.[0]?.url || '',
+      duration: (() => {
+        const s = info.basic_info.duration || 0;
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const rs = s % 60;
+        return [h, m, rs].map(v => v.toString().padStart(2, '0')).filter((v, i) => v !== '00' || i > 0).join(':');
+      })(),
+      channel: info.basic_info.author,
+      views: info.basic_info.view_count?.toLocaleString() || '0',
+      publishDate: info.basic_info.publish_date,
+      category: info.basic_info.category,
+      description: info.basic_info.short_description || '',
       qualities: availableQualities
     });
 
