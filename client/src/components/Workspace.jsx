@@ -15,6 +15,9 @@ export default function Workspace({ tool, config }) {
   const [result, setResult] = useState(null);
   const [progress, setProgress] = useState(0);
   const [recentChecks, setRecentChecks] = useState([]);
+  const [videoInfo, setVideoInfo] = useState(null);
+  const [fetchingInfo, setFetchingInfo] = useState(false);
+  const [selectedItag, setSelectedItag] = useState(null);
 
   // Load recent checks from localStorage on mount
   useEffect(() => {
@@ -30,6 +33,9 @@ export default function Workspace({ tool, config }) {
     setResult(null);
     setProcessing(false);
     setProgress(0);
+    setVideoInfo(null);
+    setFetchingInfo(false);
+    setSelectedItag(null);
   }, [tool?.id]);
 
   const onDrop = (accepted) => {
@@ -121,6 +127,28 @@ export default function Workspace({ tool, config }) {
           return;
         }
       }
+      }
+    }
+
+    // Step 1: Fetch Video Info for Video Downloader
+    if (tool.id === 'yt-video-download' && !videoInfo) {
+      setFetchingInfo(true);
+      setProgress(20);
+      try {
+        const infoRes = await axios.post(`${API_URL}/youtube/video-info`, { url });
+        setVideoInfo(infoRes.data);
+        if (infoRes.data.qualities?.length > 0) {
+          setSelectedItag(infoRes.data.qualities[0].itag);
+        }
+        setProgress(100);
+        toast.success('Video analyzed! Choose quality.');
+      } catch (err) {
+        toast.error(err.response?.data?.error || 'Failed to analyze video');
+      } finally {
+        setFetchingInfo(false);
+        setProgress(0);
+      }
+      return;
     }
 
     setProcessing(true);
@@ -142,10 +170,6 @@ export default function Workspace({ tool, config }) {
       if (el) el.innerText = messages[msgIdx];
     }, 2500);
 
-    const interval = setInterval(() => {
-      setProgress(p => Math.min(p + Math.random() * 20, 95));
-    }, 400);
-
     try {
       let response;
       let isFileDownload = false;
@@ -156,7 +180,11 @@ export default function Workspace({ tool, config }) {
 
       if (url) {
         if (shouldReturnFile) {
-          response = await axios.post(`${API_URL}${tool.endpoint}`, { url }, { responseType: 'blob' });
+          // Pass selected itag if available
+          const payload = { url };
+          if (selectedItag) payload.itag = selectedItag;
+          
+          response = await axios.post(`${API_URL}${tool.endpoint}`, payload, { responseType: 'blob' });
           isFileDownload = true;
           
           const contentDisposition = response.headers['content-disposition'];
@@ -217,42 +245,32 @@ export default function Workspace({ tool, config }) {
       clearInterval(interval);
       clearInterval(msgInterval);
       setProgress(100);
-      setResult({ data: response.data, isFileDownload, downloadFilename });
-
-      // Keep file url in state instead of auto-downloading
+      
       let fileUrl = null;
       if (isFileDownload) {
         fileUrl = window.URL.createObjectURL(new Blob([response.data]));
       }
 
       setResult({ data: response.data, isFileDownload, downloadFilename, fileUrl });
-
       toast.success(`${tool.name} complete!`);
     } catch (err) {
       let status = err.response?.status;
       let errorData = err.response?.data?.error || 'Processing failed. Please try again.';
-
-      // Handle cases where responseType is 'blob' but we received a JSON error
-      if (err.response?.data instanceof Blob) {
-        try {
-          const text = await err.response.data.text();
-          const parsed = JSON.parse(text);
-          errorData = parsed.error || errorData;
-        } catch (e) {
-          // Not JSON, stick with default
-        }
-      }
 
       // Map errors to user-friendly UI states
       let errorState = {
         isError: true,
         errorTitle: 'Something Went Wrong',
         errorMsg: errorData,
-        suggestion: 'Please verify the link and try again in a few moments.',
-        iconName: 'AlertCircle'
       };
 
-      if (errorData.includes('Transcript unavailable') || errorData.includes('no captions found')) {
+      if (status === 429) {
+        errorState.errorTitle = 'Rate Limit Reached';
+        errorState.errorMsg = 'YouTube is limiting requests. Please wait a minute and try again.';
+      } else if (status === 403) {
+        errorState.errorTitle = 'Video Restricted';
+        errorState.errorMsg = 'This video is private, age-restricted, or blocked in this region.';
+      } else if (errorData.includes('Transcript unavailable') || errorData.includes('no captions found')) {
         errorState = {
           isError: true,
           errorTitle: 'Captions Not Found',
@@ -364,7 +382,7 @@ export default function Workspace({ tool, config }) {
               )}
 
               {/* Dynamic Tool Options Menu */}
-              {!isUrlTool && (
+              {(videoInfo || !isUrlTool) && (
                 <>
                   <div className="tool-options-container" style={{ marginTop: '24px', background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
                     <h4 style={{ marginBottom: '16px', fontSize: '1rem', color: 'var(--text-main)' }}>Configuration Options</h4>
@@ -444,15 +462,50 @@ export default function Workspace({ tool, config }) {
                       </div>
                     )}
 
-                    {!['split-pdf', 'rotate-pdf', 'watermark-pdf', 'reorder-pdf', 'edit-pdf'].includes(tool.id) && (
+                    {tool.id === 'yt-video-download' && videoInfo && (
+                      <div className="options-grid">
+                        <div className="video-preview-card" style={{ gridColumn: 'span 2', display: 'flex', gap: '16px', padding: '12px', background: 'rgba(0,0,0,0.03)', borderRadius: '12px', marginBottom: '8px' }}>
+                          <img src={videoInfo.thumbnail} alt="preview" style={{ width: '120px', height: '68px', borderRadius: '8px', objectFit: 'cover' }} />
+                          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <h4 style={{ fontSize: '0.9rem', margin: 0, color: 'var(--text-main)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{videoInfo.title}</h4>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{videoInfo.author}</span>
+                          </div>
+                        </div>
+                        <div className="option-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px', gridColumn: 'span 2' }}>
+                          <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Select Download Quality</label>
+                          <select 
+                            value={selectedItag || ''} 
+                            onChange={e => setSelectedItag(e.target.value)} 
+                            style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)', fontSize: '0.9rem', background: 'white' }}
+                          >
+                            {videoInfo.qualities.map(q => (
+                              <option key={q.itag} value={q.itag}>
+                                {q.quality} {q.fps > 30 ? `(${q.fps}fps)` : ''} — {q.size} ({q.container})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {!['split-pdf', 'rotate-pdf', 'watermark-pdf', 'reorder-pdf', 'edit-pdf', 'yt-video-download'].includes(tool.id) && (
                       <p style={{ color: 'var(--text-muted)' }}>No additional configuration needed. Ready to process!</p>
                     )}
                   </div>
 
                   <div className="process-btn-row">
-                    <button className="btn btn-primary btn-process-main" onClick={handleProcess}>
-                      Process with {tool.name} <Icons.Zap size={16} />
+                    <button className="btn btn-primary btn-process-main" onClick={handleProcess} disabled={fetchingInfo}>
+                      {fetchingInfo ? (
+                        <>Analyzing... <Icons.Loader className="spin" size={16} /></>
+                      ) : (
+                        videoInfo ? <>Start Download <Icons.Download size={16} /></> : <>Analyze Link <Icons.Zap size={16} /></>
+                      )}
                     </button>
+                    {videoInfo && (
+                      <button className="btn btn-glass" onClick={() => setVideoInfo(null)} style={{ marginLeft: '12px' }}>
+                        Change Link
+                      </button>
+                    )}
                   </div>
                 </>
               )}

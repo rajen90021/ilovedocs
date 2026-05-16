@@ -947,11 +947,11 @@ router.post('/to-markdown', async (req, res) => {
 // ═══════════════════════════════════════════════════════════
 router.post('/download-video', async (req, res) => {
   try {
-    const { url } = req.body;
+    const { url, itag } = req.body;
     const videoId = getVideoId(url);
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
-    console.log(`[Innertube] Processing Video: ${videoId}`);
+    console.log(`[Innertube] Processing Video: ${videoId} (itag: ${itag || 'best'})`);
 
     const { Innertube, UniversalCache, Platform } = require('youtubei.js');
     const vm = require('vm');
@@ -975,19 +975,16 @@ router.post('/download-video', async (req, res) => {
     });
     
     const info = await yt.getInfo(videoId);
-    const format = info.chooseFormat({ type: 'video+audio', quality: 'best', format: 'mp4' });
+    const downloadOptions = itag ? { itag } : { type: 'video+audio', quality: 'best', format: 'mp4' };
+    const format = info.chooseFormat(downloadOptions);
 
-    if (!format) throw new Error('No playable mp4 formats found for this video.');
+    if (!format) throw new Error('Requested quality not available.');
 
     const cleanTitle = (info.basic_info.title || 'video').replace(/[^a-z0-9]/gi, '_').toLowerCase();
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.mp4"`);
 
-    const stream = await info.download({
-      type: 'video+audio',
-      quality: 'best',
-      format: 'mp4'
-    });
+    const stream = await info.download(downloadOptions);
 
     // Convert WebStream to Node.js Readable stream
     const { Readable } = require('stream');
@@ -1083,6 +1080,67 @@ router.post('/extract-audio', async (req, res) => {
       error: 'Extraction Failed',
       message: err.message
     });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 15. GET VIDEO INFO (Innertube Engine)
+// ═══════════════════════════════════════════════════════════
+router.post('/video-info', async (req, res) => {
+  try {
+    const { url } = req.body;
+    const videoId = getVideoId(url);
+    if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
+
+    const { Innertube, UniversalCache, Platform } = require('youtubei.js');
+    const vm = require('vm');
+    
+    if (Platform.shim && !Platform.shim.eval_overridden) {
+      Platform.shim.eval = (data, args) => {
+        const script = new vm.Script(`(function() { ${data.output} })()`);
+        const context = vm.createContext({
+          Object, JSON, RegExp, Proxy, Symbol, Error, console, Math, String, Number, Array, Date,
+          ...args
+        });
+        return script.runInContext(context);
+      };
+      Platform.shim.eval_overridden = true;
+    }
+
+    const yt = await Innertube.create({ 
+      cache: new UniversalCache(false), 
+      generate_session_locally: true
+    });
+
+    const info = await yt.getInfo(videoId);
+    
+    // Extract available formats
+    const formats = info.streaming_data?.formats.concat(info.streaming_data?.adaptive_formats || []) || [];
+    
+    const availableQualities = formats
+      .filter(f => f.has_video)
+      .map(f => ({
+        itag: f.itag,
+        quality: f.quality_label || f.quality,
+        container: f.mime_type.split(';')[0].split('/')[1],
+        hasAudio: f.has_audio,
+        size: f.content_length ? (parseInt(f.content_length) / (1024 * 1024)).toFixed(2) + ' MB' : 'Unknown',
+        fps: f.fps
+      }))
+      // Filter out duplicates and low quality if needed, or just sort
+      .sort((a, b) => parseInt(b.quality) - parseInt(a.quality));
+
+    res.json({
+      title: info.basic_info.title,
+      thumbnail: info.basic_info.thumbnail[0].url,
+      duration: info.basic_info.duration,
+      author: info.basic_info.author,
+      qualities: availableQualities
+    });
+
+  } catch (err) {
+    console.error('[Innertube] Info Error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch video info' });
   }
 });
 
