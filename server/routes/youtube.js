@@ -4,6 +4,7 @@ const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = require('docx');
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
+const ytdl = require('@distube/ytdl-core');
 
 // ── Helper: Extract Video ID ─────────────────────────────────
 function getVideoId(url) {
