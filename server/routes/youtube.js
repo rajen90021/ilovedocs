@@ -578,50 +578,7 @@ router.post('/monetization-check', async (req, res) => {
   }
 });
 
-// ═══════════════════════════════════════════════════════════
-// 7. VIDEO INFO VIEWER
-// ═══════════════════════════════════════════════════════════
-// 7. VIDEO INFO VIEWER
-// ═══════════════════════════════════════════════════════════
-router.post('/video-info', async (req, res) => {
-  try {
-    const { url } = req.body;
-    const videoId = getVideoId(url);
-    if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
-
-    // Use Player API (Robust against blocks)
-    const details = await fetchVideoDetails(videoId);
-    if (!details) throw new Error('Video metadata fetch failed');
-
-    const videoDetails = details.videoDetails || {};
-    const microformat = details.microformat?.playerMicroformatRenderer || {};
-
-    const durationSec = parseInt(videoDetails.lengthSeconds || 0);
-    const mins = Math.floor(durationSec / 60);
-    const secs = String(durationSec % 60).padStart(2, '0');
-
-    res.json({
-      videoId,
-      title: videoDetails.title || 'YouTube Video',
-      channel: videoDetails.author || 'Unknown Channel',
-      channelId: videoDetails.channelId || null,
-      views: parseInt(videoDetails.viewCount || 0).toLocaleString(),
-      description: (videoDetails.shortDescription || '').substring(0, 1000),
-      category: microformat.category || 'N/A',
-      publishDate: microformat.publishDate || 'N/A',
-      duration: `${mins}:${secs}`,
-      thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-      isPrivate: details.playabilityStatus?.status !== 'OK',
-    });
-  } catch (err) {
-    console.error('[video-info]', err.message);
-    const status = err.status || 500;
-    res.status(status).json({ 
-      error: err.message || 'Failed to fetch video info.',
-      isSecurityLimit: status === 403 || status === 429
-    });
-  }
-});
+// [DELETED OLD VIDEO-INFO ROUTE TO PREVENT CONFLICT WITH THE NEW QUALITY-AWARE VERSION]
 
 // ═══════════════════════════════════════════════════════════
 // 8. SEO SCORE CHECKER
