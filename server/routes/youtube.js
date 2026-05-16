@@ -911,7 +911,6 @@ router.post('/download-video', async (req, res) => {
     console.log(`[Innertube] Processing Video: ${videoId} (itag: ${itag || 'best'})`);
 
     const { Innertube, UniversalCache, Platform, Parser } = require('youtubei.js');
-    const vm = require('vm');
 
     // 🛡️ Parser Shield: Prevent non-fatal parsing errors from crashing
     if (!Parser.shield_active) {
@@ -923,17 +922,17 @@ router.post('/download-video', async (req, res) => {
       Parser.shield_active = true;
     }
     
-    // ⚡ Hybrid Engine: Use Jintr (jintr) for ultra-reliable deciphering
+    // ⚡ Ultra-Reliable Engine: Use native Function constructor (Handles 'return' statements perfectly)
     if (Platform.shim && !Platform.shim.eval_overridden) {
-      const jintrPath = require.resolve('jintr');
-      Platform.shim.eval = async (data, args) => {
+      Platform.shim.eval = (data, args) => {
         try {
-          const { Jintr } = await import('file://' + jintrPath);
-          const interpreter = new Jintr(data.output, args);
-          return interpreter.interpret();
+          const keys = Object.keys(args);
+          const values = Object.values(args);
+          const fn = new Function(...keys, data.output);
+          return fn(...values);
         } catch (e) {
-          // Fallback to VM
-          return vm.runInNewContext(data.output, args);
+          // Fallback to direct execution if possible
+          return (new Function(data.output))();
         }
       };
       Platform.shim.eval_overridden = true;
@@ -1079,7 +1078,6 @@ router.post('/video-info', async (req, res) => {
     if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
 
     const { Innertube, UniversalCache, Platform, Parser } = require('youtubei.js');
-    const vm = require('vm');
     
     // 🛡️ Parser Shield: Prevent non-fatal parsing errors from crashing
     if (!Parser.shield_active) {
@@ -1091,17 +1089,17 @@ router.post('/video-info', async (req, res) => {
       Parser.shield_active = true;
     }
 
-    // ⚡ Hybrid Engine: Use Jintr (jintr) for ultra-reliable deciphering
+    // ⚡ Ultra-Reliable Engine: Use native Function constructor (Handles 'return' statements perfectly)
     if (Platform.shim && !Platform.shim.eval_overridden) {
-      const jintrPath = require.resolve('jintr');
-      Platform.shim.eval = async (data, args) => {
+      Platform.shim.eval = (data, args) => {
         try {
-          const { Jintr } = await import('file://' + jintrPath);
-          const interpreter = new Jintr(data.output, args);
-          return interpreter.interpret();
+          const keys = Object.keys(args);
+          const values = Object.values(args);
+          const fn = new Function(...keys, data.output);
+          return fn(...values);
         } catch (e) {
-          // Fallback to VM
-          return vm.runInNewContext(data.output, args);
+          // Fallback to direct execution if possible
+          return (new Function(data.output))();
         }
       };
       Platform.shim.eval_overridden = true;
