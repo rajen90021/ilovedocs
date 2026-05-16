@@ -33,3 +33,5 @@ server/multi.pdf
 server/test.zip
 server/test_out/
 server/test_out.docx
+*.log
+server/routes/*.log
