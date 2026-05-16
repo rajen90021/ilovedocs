@@ -954,27 +954,17 @@ router.post('/download-video', async (req, res) => {
     console.log(`[Innertube] Processing Video: ${videoId}`);
 
     const { Innertube, UniversalCache, Platform } = require('youtubei.js');
-    const Jintr = require('jintr').default;
+    const vm = require('vm');
     
-    // Core Engine Override: Inject the Jintr "Brain" into the platform shim
+    // Core Engine Override: Using native Node.js VM (much more powerful than jintr)
     if (Platform.shim && !Platform.shim.eval_overridden) {
       Platform.shim.eval = (data, args) => {
-        console.log(`[Decipher] Eval called with ${Object.keys(data).length} data keys and ${Object.keys(args || {}).length} args.`);
-        const jintr = new Jintr();
-        // Add core globals needed for YouTube deciphering
-        jintr.defineObject('Object', Object);
-        jintr.defineObject('JSON', JSON);
-        jintr.defineObject('RegExp', RegExp);
-        jintr.defineObject('Proxy', Proxy);
-        jintr.defineObject('Symbol', Symbol);
-        jintr.defineObject('Error', Error);
-        
-        try {
-          return jintr.evaluate(`(function() { ${data.output} })()`);
-        } catch (e) {
-          console.error('[Decipher] Jintr Error:', e.message);
-          throw e;
-        }
+        const script = new vm.Script(`(function() { ${data.output} })()`);
+        const context = vm.createContext({
+          Object, JSON, RegExp, Proxy, Symbol, Error, console, Math, String, Number, Array, Date,
+          ...args
+        });
+        return script.runInContext(context);
       };
       Platform.shim.eval_overridden = true;
     }
@@ -1037,19 +1027,17 @@ router.post('/extract-audio', async (req, res) => {
     console.log(`[Innertube] Processing Audio: ${videoId}`);
 
     const { Innertube, UniversalCache, Platform } = require('youtubei.js');
-    const Jintr = require('jintr').default;
+    const vm = require('vm');
     
     // Core Engine Override
     if (Platform.shim && !Platform.shim.eval_overridden) {
       Platform.shim.eval = (data, args) => {
-        const jintr = new Jintr();
-        jintr.defineObject('Object', Object);
-        jintr.defineObject('JSON', JSON);
-        jintr.defineObject('RegExp', RegExp);
-        jintr.defineObject('Proxy', Proxy);
-        jintr.defineObject('Symbol', Symbol);
-        jintr.defineObject('Error', Error);
-        return jintr.evaluate(`(function() { ${data.output} })()`);
+        const script = new vm.Script(`(function() { ${data.output} })()`);
+        const context = vm.createContext({
+          Object, JSON, RegExp, Proxy, Symbol, Error, console, Math, String, Number, Array, Date,
+          ...args
+        });
+        return script.runInContext(context);
       };
       Platform.shim.eval_overridden = true;
     }
