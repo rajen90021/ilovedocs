@@ -14,16 +14,7 @@ export default function Workspace({ tool, config }) {
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState(null);
   const [progress, setProgress] = useState(0);
-  const [recentChecks, setRecentChecks] = useState([]);
-  const [videoInfo, setVideoInfo] = useState(null);
-  const [fetchingInfo, setFetchingInfo] = useState(false);
-  const [selectedItag, setSelectedItag] = useState(null);
 
-  // Load recent checks from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('yt_recent_checks');
-    if (saved) setRecentChecks(JSON.parse(saved));
-  }, []);
 
   // Reset state when the active tool changes
   useEffect(() => {
@@ -33,9 +24,6 @@ export default function Workspace({ tool, config }) {
     setResult(null);
     setProcessing(false);
     setProgress(0);
-    setVideoInfo(null);
-    setFetchingInfo(false);
-    setSelectedItag(null);
   }, [tool?.id]);
 
   const onDrop = (accepted) => {
@@ -73,30 +61,12 @@ export default function Workspace({ tool, config }) {
     multiple: config?.multi,
   });
 
-  const handleProcess = async (eOrItag) => {
-    let overrideItag = null;
-    if (eOrItag && !eOrItag.nativeEvent && typeof eOrItag !== 'object') {
-      overrideItag = eOrItag;
-    }
+  const handleProcess = async () => {
     const isUrl = config?.type === 'url';
     if (isUrl) {
       if (!url || !url.trim()) {
         toast.error('Please enter a valid URL');
         return;
-      }
-      // YouTube URL validation
-      if (tool.category === 'youtube') {
-        try {
-          const urlObj = new URL(url.trim());
-          const validHosts = ['youtube.com', 'm.youtube.com', 'youtu.be', 'www.youtube.com'];
-          if (!validHosts.includes(urlObj.hostname)) {
-            toast.error('Please enter a valid YouTube URL (e.g. youtube.com/watch?v=...)');
-            return;
-          }
-        } catch (e) {
-          toast.error('Invalid URL format');
-          return;
-        }
       }
     } else {
       if (files.length === 0) {
@@ -131,6 +101,12 @@ export default function Workspace({ tool, config }) {
           return;
         }
       }
+
+      // PDF security validations
+      if ((tool.id === 'protect-pdf' || tool.id === 'unlock-pdf') && (!options.password || !options.password.trim())) {
+        toast.error('Please enter a password for this tool.');
+        return;
+      }
     }
 
     // Build the full URL robustly to avoid double /api
@@ -146,27 +122,7 @@ export default function Workspace({ tool, config }) {
       return `${base}${cleanEndpoint}`;
     };
 
-    // Step 1: Fetch Video Info for Video Downloader
-    if (tool.id === 'yt-video-download' && !videoInfo) {
-      setFetchingInfo(true);
-      setProgress(20);
-      try {
-        const fullUrl = getFullUrl('/youtube/video-info');
-        const infoRes = await axios.post(fullUrl, { url });
-        setVideoInfo(infoRes.data);
-        if (infoRes.data.qualities?.length > 0) {
-          setSelectedItag(infoRes.data.qualities[0].itag);
-        }
-        setProgress(100);
-        toast.success('Video analyzed! Choose quality.');
-      } catch (err) {
-        toast.error(err.response?.data?.error || 'Failed to analyze video');
-      } finally {
-        setFetchingInfo(false);
-        setProgress(0);
-      }
-      return;
-    }
+
 
     setProcessing(true);
     setProgress(0);
@@ -192,85 +148,42 @@ export default function Workspace({ tool, config }) {
       let isFileDownload = false;
       let downloadFilename = 'downloaded_file';
 
-      const fileReturnTools = ['yt-to-doc', 'yt-to-pdf', 'yt-to-markdown', 'yt-video-download', 'yt-audio-extract'];
-      const shouldReturnFile = fileReturnTools.includes(tool.id);
-
-      if (url) {
-        if (shouldReturnFile) {
-          // Pass selected itag if available
-          const payload = { url };
-          if (overrideItag) payload.itag = overrideItag;
-          else if (selectedItag) payload.itag = selectedItag;
+      if (tool.endpoint?.startsWith('/client/')) {
+        const { processClientTool } = await import('../utils/pdfProcessor.js');
+        const res = await processClientTool(tool.id, files, options);
+        response = { data: res.blob };
+        downloadFilename = res.filename;
+        isFileDownload = true;
+      } else {
+        if (url) {
+          const endpoint = tool.endpoint;
+          const fullUrl = getFullUrl(endpoint);
+          response = await axios.post(fullUrl, { url });
+        } else {
+          const formData = new FormData();
+          files.forEach(f => formData.append(config.multi ? 'files' : 'file', f));
           
-          const fullUrl = getFullUrl(tool.endpoint);
-          response = await axios.post(fullUrl, payload, { 
-            responseType: 'blob',
-            onDownloadProgress: (progressEvent) => {
-              if (progressEvent.total) {
-                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                setProgress(percentCompleted);
-              } else {
-                setProgress(prev => Math.min(prev + 1, 95));
-              }
-            }
+          // Append dynamic configuration options
+          Object.entries(options).forEach(([key, val]) => {
+            if (val) formData.append(key, val);
+          });
+
+          response = await axios.post(`${API_URL}${tool.endpoint}`, formData, {
+            responseType: 'blob'
           });
           isFileDownload = true;
-          
+
+          // Try extracting filename from headers if backend sends it
           const contentDisposition = response.headers['content-disposition'];
           if (contentDisposition && contentDisposition.includes('filename=')) {
             downloadFilename = contentDisposition.split('filename=')[1].split(';')[0].replace(/"/g, '');
           } else {
-            if (tool.id === 'yt-to-doc') downloadFilename = 'youtube_transcript.docx';
-            if (tool.id === 'yt-to-pdf') downloadFilename = 'youtube_transcript.pdf';
-            if (tool.id === 'yt-to-markdown') downloadFilename = 'youtube_transcript.md';
-            if (tool.id === 'yt-video-download') downloadFilename = 'youtube_video.mp4';
-            if (tool.id === 'yt-audio-extract') downloadFilename = 'youtube_audio.mp3';
+            // Fallback guess based on tool
+            if (tool.id.includes('pdf')) downloadFilename = 'ilovedocs_output.pdf';
+            if (tool.id.includes('image') || tool.id.includes('jpg')) downloadFilename = 'ilovedocs_output.jpg';
+            if (tool.id.includes('word')) downloadFilename = 'ilovedocs_output.docx';
+            if (tool.id.includes('excel')) downloadFilename = 'ilovedocs_output.xlsx';
           }
-        } else {
-          // Check if tool has an explicit endpoint, otherwise guess from ID
-          const endpoint = tool.endpoint || `/youtube/${tool.id.replace('yt-', '')}`;
-          const fullUrl = getFullUrl(endpoint);
-          response = await axios.post(fullUrl, { url });
-        }
-
-        // Save to recent checks for YouTube tools
-        if (tool.category === 'youtube' && !shouldReturnFile) {
-          const newCheck = {
-            id: Date.now(),
-            toolId: tool.id,
-            toolName: tool.name,
-            url,
-            title: response.data.title || 'YouTube Result',
-            timestamp: new Date().toISOString(),
-          };
-          const updated = [newCheck, ...recentChecks].filter(c => c.url !== url).slice(0, 5);
-          setRecentChecks(updated);
-          localStorage.setItem('yt_recent_checks', JSON.stringify(updated));
-        }
-      } else {
-        const formData = new FormData();
-        files.forEach(f => formData.append(config.multi ? 'files' : 'file', f));
-        
-        // Append dynamic configuration options
-        Object.entries(options).forEach(([key, val]) => {
-          if (val) formData.append(key, val);
-        });
-
-        response = await axios.post(`${API_URL}${tool.endpoint}`, formData, {
-          responseType: 'blob'
-        });
-        isFileDownload = true;
-
-        // Try extracting filename from headers if backend sends it
-        const contentDisposition = response.headers['content-disposition'];
-        if (contentDisposition && contentDisposition.includes('filename=')) {
-          downloadFilename = contentDisposition.split('filename=')[1].split(';')[0].replace(/"/g, '');
-        } else {
-          // Fallback guess based on tool
-          if (tool.id.includes('pdf')) downloadFilename = 'ilovedocs_output.pdf';
-          if (tool.id.includes('image') || tool.id.includes('jpg')) downloadFilename = 'ilovedocs_output.jpg';
-          if (tool.id.includes('word')) downloadFilename = 'ilovedocs_output.docx';
-          if (tool.id.includes('excel')) downloadFilename = 'ilovedocs_output.xlsx';
         }
       }
 
@@ -433,7 +346,7 @@ export default function Workspace({ tool, config }) {
               )}
 
               {/* Dynamic Tool Options Menu */}
-              {(videoInfo || !isUrlTool) && (
+              {(files.length > 0) && (
                 <>
                   <div className="tool-options-container" style={{ marginTop: '24px', background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
                     <h4 style={{ marginBottom: '16px', fontSize: '1rem', color: 'var(--text-main)' }}>Configuration Options</h4>
@@ -513,76 +426,24 @@ export default function Workspace({ tool, config }) {
                       </div>
                     )}
 
-                    {tool.id === 'yt-video-download' && videoInfo && (
-                      <div className="y2mate-container" style={{ marginTop: '16px' }}>
-                        <div className="y2mate-header" style={{ display: 'flex', gap: '20px', background: 'var(--bg-subtle)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-light)', marginBottom: '24px' }}>
-                          <img src={videoInfo.thumbnail} alt="preview" style={{ width: '180px', borderRadius: '8px', objectFit: 'cover', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0 0 8px 0', color: 'var(--text-main)', lineHeight: '1.4' }}>{videoInfo.title}</h3>
-                            <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{videoInfo.author}</span>
-                          </div>
-                        </div>
-
-                        <div className="y2mate-table-container" style={{ background: 'white', borderRadius: '12px', border: '1px solid var(--border-light)', overflow: 'hidden' }}>
-                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                            <thead>
-                              <tr style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-light)' }}>
-                                <th style={{ padding: '16px', fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>Quality / Resolution</th>
-                                <th style={{ padding: '16px', fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>File Size</th>
-                                <th style={{ padding: '16px', fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem', textAlign: 'right' }}>Action</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {videoInfo.qualities.map(q => (
-                                <tr key={q.itag} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                                  <td style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ background: 'var(--brand-primary-light)', color: 'var(--brand-primary)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
-                                      {q.container.toUpperCase()}
-                                    </div>
-                                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>
-                                      {q.quality} {q.fps > 30 ? <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 500 }}>{q.fps}fps</span> : ''}
-                                    </span>
-                                  </td>
-                                  <td style={{ padding: '16px', color: 'var(--text-soft)', fontSize: '0.9rem', fontWeight: 500 }}>
-                                    {q.size}
-                                  </td>
-                                  <td style={{ padding: '16px', textAlign: 'right' }}>
-                                    <button 
-                                      className="btn btn-primary btn-sm" 
-                                      onClick={() => handleProcess(q.itag)}
-                                      style={{ display: 'inline-flex', padding: '8px 20px', fontSize: '0.85rem', fontWeight: 600, borderRadius: '8px' }}
-                                    >
-                                      <Icons.Download size={14} style={{ marginRight: '6px' }} /> Download
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
+                    {(tool.id === 'protect-pdf' || tool.id === 'unlock-pdf') && (
+                      <div className="option-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>{tool.id === 'protect-pdf' ? 'Set Password to Protect PDF' : 'Enter Password to Unlock PDF'}</label>
+                        <input 
+                          type="password" 
+                          placeholder="Enter password..." 
+                          value={options.password || ''} 
+                          onChange={e => setOptions({ ...options, password: e.target.value })} 
+                          style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border-light)' }} 
+                        />
                       </div>
-                    )}
-
-                    {!['split-pdf', 'rotate-pdf', 'watermark-pdf', 'reorder-pdf', 'edit-pdf', 'yt-video-download'].includes(tool.id) && (
-                      <p style={{ color: 'var(--text-muted)' }}>No additional configuration needed. Ready to process!</p>
                     )}
                   </div>
 
                   <div className="process-btn-row">
-                    {!(tool.id === 'yt-video-download' && videoInfo) && (
-                      <button className="btn btn-primary btn-process-main" onClick={() => handleProcess()} disabled={fetchingInfo}>
-                        {fetchingInfo ? (
-                          <>Analyzing... <Icons.Loader2 className="spin" size={16} /></>
-                        ) : (
-                          videoInfo ? <>Start Download <Icons.Download size={16} /></> : <>Analyze Link <Icons.Zap size={16} /></>
-                        )}
-                      </button>
-                    )}
-                    {videoInfo && (
-                      <button className="btn btn-glass" onClick={() => setVideoInfo(null)} style={{ marginLeft: tool.id === 'yt-video-download' ? '0' : '12px', width: tool.id === 'yt-video-download' ? '100%' : 'auto', marginTop: tool.id === 'yt-video-download' ? '16px' : '0' }}>
-                        <Icons.Search size={16} style={{ marginRight: '6px' }} /> Search Another Video
-                      </button>
-                    )}
+                    <button className="btn btn-primary btn-process-main" onClick={() => handleProcess()}>
+                       Process File <Icons.Zap size={16} />
+                    </button>
                   </div>
                 </>
               )}
@@ -622,267 +483,7 @@ export default function Workspace({ tool, config }) {
               <div className="result-data-box">
                 {!result.isError && (
                   <>
-                    {/* ─── Thumbnail Downloader ─── */}
-                    {tool.id === 'yt-thumbnail' && (
-                      <div className="thumbnail-results">
-                        {Object.entries(result.data.thumbnails).map(([quality, thumbUrl]) => (
-                          <div key={quality} className="thumb-item">
-                            <img src={thumbUrl} alt={`${quality} thumbnail`} className="thumb-preview" />
-                            <div className="thumb-actions">
-                              <span className="quality-label">{quality.toUpperCase()}</span>
-                              <a href={thumbUrl} target="_blank" rel="noreferrer" className="btn btn-glass btn-sm">
-                                Download
-                              </a>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
 
-                    {/* ─── Tags Extractor ─── */}
-                    {tool.id === 'yt-tags' && (
-                      <div className="tags-container">
-                        <div className="tags-header">
-                          <strong>{result.data.tags?.length || 0} Tags Found</strong>
-                          <button className="btn btn-glass btn-sm" onClick={() => {
-                            navigator.clipboard.writeText((result.data.tags || []).join(', '));
-                            toast.success('Tags copied!');
-                          }}>Copy All</button>
-                        </div>
-                        {result.data.tags && result.data.tags.length > 0 ? (
-                          <div className="tags-list">
-                            {result.data.tags.map((t, i) => <span key={i} className="tag-pill">{t}</span>)}
-                          </div>
-                        ) : (
-                          <p style={{ color: 'var(--text-muted)', marginTop: '12px' }}>No public tags found for this video.</p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* ─── Transcript Fetcher ─── */}
-                    {tool.id === 'yt-transcript' && (
-                      <div className="summary-result">
-                        <div className="summary-header">
-                          <Icons.FileText size={16} />
-                          <span>Full Transcript</span>
-                          <button className="btn btn-glass btn-sm" style={{ marginLeft: 'auto' }} onClick={() => {
-                            navigator.clipboard.writeText(result.data.fullText);
-                            toast.success('Transcript copied!');
-                          }}>Copy</button>
-                        </div>
-                        <div className="transcript-box">
-                          <p>{result.data.fullText}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ─── AI Summarizer ─── */}
-                    {tool.id === 'yt-summarize' && (
-                      <div className="summary-result">
-                        <div className="summary-header">
-                          <Icons.Sparkles size={16} />
-                          <span>AI Generated Summary</span>
-                        </div>
-                        <div className="summary-content">
-                          {(result.data.summary || '').split('\n').map((line, i) =>
-                            line.trim() ? <p key={i}>{line}</p> : null
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ─── Region Checker ─── */}
-                    {tool.id === 'yt-region' && (
-                      <div className="summary-result">
-                        <div className="summary-header">
-                          <Icons.Globe size={16} />
-                          <span>Region Restriction Status</span>
-                        </div>
-                        {result.data.restricted ? (
-                          <div>
-                            {result.data.restrictions.blocked?.length > 0 && (
-                              <div style={{ marginTop: '12px' }}>
-                                <strong style={{ color: '#ef4444' }}>Blocked In:</strong>
-                                <div className="tags-list" style={{ marginTop: '8px' }}>
-                                  {result.data.restrictions.blocked.map(c => (
-                                    <span key={c} className="tag-pill" style={{ color: '#ef4444', borderColor: '#fecaca' }}>{c}</span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {result.data.restrictions.allowed?.length > 0 && (
-                              <div style={{ marginTop: '12px' }}>
-                                <strong style={{ color: '#10b981' }}>Allowed In:</strong>
-                                <div className="tags-list" style={{ marginTop: '8px' }}>
-                                  {result.data.restrictions.allowed.map(c => (
-                                    <span key={c} className="tag-pill">{c}</span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <p style={{ color: '#10b981', fontWeight: 600, marginTop: '12px' }}>
-                            ✅ Available Worldwide — No region restrictions found.
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* ─── Monetization Checker (Premium Overhaul) ─── */}
-                    {tool.id === 'yt-monetization' && (
-                      <div className="monetization-dashboard">
-                        <div className="dashboard-header">
-                          <div className="channel-badge-premium">
-                            {result.data.channelLogo ? (
-                              <img src={result.data.channelLogo} alt={result.data.channelName} className="channel-logo" />
-                            ) : (
-                              <div className="channel-logo-placeholder">{result.data.channelName?.charAt(0)}</div>
-                            )}
-                            <div className="channel-info-text">
-                              <h4>{result.data.channelName}</h4>
-                              <span>{result.data.channelHandle || 'Public Channel'}</span>
-                            </div>
-                          </div>
-                          <div className={`status-pill-premium ${result.data.monetized ? 'active' : 'inactive'}`}>
-                            {result.data.monetized ? <Icons.Zap size={14} /> : <Icons.AlertCircle size={14} />}
-                            {result.data.monetized ? 'Monetized' : 'Not Monetized'}
-                          </div>
-                        </div>
-
-                        <div className="premium-stats-grid">
-                          <div className="stat-card">
-                            <Icons.Users className="stat-icon" size={18} />
-                            <div className="stat-value">{result.data.subscriberCount}</div>
-                            <div className="stat-label">Subscribers</div>
-                          </div>
-                          <div className="stat-card highlight">
-                            <Icons.DollarSign className="stat-icon" size={18} />
-                            <div className="stat-value">{result.data.estimatedEarnings}</div>
-                            <div className="stat-label">Estimated Revenue</div>
-                          </div>
-                          <div className="stat-card">
-                            <Icons.Eye className="stat-icon" size={18} />
-                            <div className="stat-value">{result.data.viewCount}</div>
-                            <div className="stat-label">Total Views</div>
-                          </div>
-                        </div>
-
-                        <div className="monetization-details">
-                          <div className="detail-item-premium">
-                            <Icons.ShieldCheck size={15} color="#10b981" />
-                            <span>Family Friendly: <strong>{result.data.familyFriendly ? 'Safe' : 'Restricted'}</strong></span>
-                          </div>
-                          <div className="detail-item-premium">
-                            <Icons.Calendar size={15} color="#ef4444" />
-                            <span>Published: <strong>{result.data.publishDate}</strong></span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ─── SEO Score Checker (New Tool) ─── */}
-                    {tool.id === 'yt-seo-score' && (
-                      <div className="seo-dashboard">
-                        <div className="seo-score-header">
-                          <div className="score-ring-large" style={{ '--score-color': result.data.score > 70 ? '#10b981' : result.data.score > 40 ? '#f59e0b' : '#ef4444' }}>
-                            <span className="score-num">{result.data.score}</span>
-                            <span className="score-denominator">/ 100</span>
-                          </div>
-                          <div className="score-verdict">
-                            <h4>SEO Strength</h4>
-                            <p>{result.data.recommendation}</p>
-                          </div>
-                        </div>
-
-                        <div className="seo-checklist">
-                          {result.data.details.map((item, i) => (
-                            <div key={i} className={`checklist-item ${item.status}`}>
-                              <div className="item-icon">
-                                {item.status === 'perfect' ? <Icons.CheckCircle2 size={16} /> :
-                                  item.status === 'warning' ? <Icons.AlertCircle size={16} /> :
-                                    <Icons.XCircle size={16} />}
-                              </div>
-                              <div className="item-text">
-                                <strong>{item.label}</strong>
-                                <p>{item.text}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ─── Revenue Calculator (New Tool) ─── */}
-                    {tool.id === 'yt-revenue' && (
-                      <div className="revenue-dashboard">
-                        <div className="revenue-header-pro">
-                          <div className="channel-badge-premium">
-                            {result.data.logo ? (
-                              <img src={result.data.logo} alt={result.data.name} className="channel-logo" />
-                            ) : (
-                              <div className="channel-logo-placeholder">{result.data.name?.charAt(0)}</div>
-                            )}
-                            <div className="channel-info-text">
-                              <h4>{result.data.name}</h4>
-                              <span>{result.data.type === 'channel' ? 'Channel Analysis' : 'Video Analysis'} • {result.data.subs} Subs</span>
-                            </div>
-                          </div>
-                          <div className="total-views-badge">
-                            <Icons.BarChart size={14} />
-                            <strong>{result.data.totalViews}</strong> Total Views
-                          </div>
-                        </div>
-
-                        <div className="revenue-projections-grid">
-                          <div className="projection-card">
-                            <div className="proj-period">Daily Projection</div>
-                            <div className="proj-value">${result.data.projections.daily.min} - ${result.data.projections.daily.max}</div>
-                            <div className="proj-indicator"><div className="indicator-bar daily" style={{ width: '65%' }}></div></div>
-                          </div>
-                          <div className="projection-card highlight">
-                            <div className="proj-period">Monthly Projection</div>
-                            <div className="proj-value">${result.data.projections.monthly.min} - ${result.data.projections.monthly.max}</div>
-                            <div className="proj-indicator"><div className="indicator-bar monthly" style={{ width: '75%' }}></div></div>
-                          </div>
-                          <div className="projection-card">
-                            <div className="proj-period">Yearly Projection</div>
-                            <div className="proj-value">${result.data.projections.yearly.min} - ${result.data.projections.yearly.max}</div>
-                            <div className="proj-indicator"><div className="indicator-bar yearly" style={{ width: '85%' }}></div></div>
-                          </div>
-                        </div>
-
-                        <div className="revenue-footer-info">
-                          <Icons.AlertTriangle size={14} color="#f59e0b" />
-                          <p>Earnings are estimated based on a standard RPM of <strong>{result.data.avgRpm}</strong>. Actual revenue varies by niche, location, and audience engagement.</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ─── Video Info Viewer ─── */}
-                    {tool.id === 'yt-video-info' && (
-                      <div className="summary-result">
-                        <div className="video-info-grid">
-                          <div className="video-info-thumb">
-                            <img src={result.data.thumbnail} alt={result.data.title} style={{ width: '100%', borderRadius: '8px', aspectRatio: '16/9', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none' }} />
-                          </div>
-                          <div className="video-info-details">
-                            <h3 style={{ fontSize: '1rem', fontWeight: '800', marginBottom: '12px', color: 'var(--text-main)' }}>{result.data.title}</h3>
-                            <div className="info-row"><Icons.User size={14} /><span><strong>Channel:</strong> {result.data.channel}</span></div>
-                            <div className="info-row"><Icons.Eye size={14} /><span><strong>Views:</strong> {result.data.views}</span></div>
-                            <div className="info-row"><Icons.Clock size={14} /><span><strong>Duration:</strong> {result.data.duration}</span></div>
-                            <div className="info-row"><Icons.Calendar size={14} /><span><strong>Published:</strong> {result.data.publishDate}</span></div>
-                            <div className="info-row"><Icons.Tag size={14} /><span><strong>Category:</strong> {result.data.category}</span></div>
-                          </div>
-                        </div>
-                        {result.data.description && (
-                          <div style={{ marginTop: '16px', padding: '12px', background: 'var(--bg-subtle)', borderRadius: '8px', fontSize: '0.875rem', color: 'var(--text-soft)', lineHeight: '1.6' }}>
-                            <strong>Description:</strong>
-                            <p style={{ marginTop: '6px' }}>{result.data.description}</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </>
                 )}
 
@@ -932,28 +533,6 @@ export default function Workspace({ tool, config }) {
         </div>
       </div>
 
-      {tool.category === 'youtube' && recentChecks.length > 0 && !processing && (
-        <div className="recent-checks-sidebar animated-in">
-          <div className="recent-header">
-            <Icons.History size={16} />
-            <span>Recent Analyses</span>
-          </div>
-          <div className="recent-list">
-            {recentChecks.map((item) => (
-              <div key={item.id} className="recent-item" onClick={() => { setUrl(item.url); handleProcess(); }}>
-                <div className="recent-info">
-                  <div className="recent-title">{item.title}</div>
-                  <div className="recent-tool">{item.toolName}</div>
-                </div>
-                <Icons.ChevronRight size={14} className="recent-arrow" />
-              </div>
-            ))}
-          </div>
-          <button className="clear-history-btn" onClick={() => { localStorage.removeItem('yt_recent_checks'); setRecentChecks([]); }}>
-            Clear History
-          </button>
-        </div>
-      )}
     </div>
   );
 }

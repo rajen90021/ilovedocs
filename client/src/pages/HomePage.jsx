@@ -13,10 +13,7 @@ import './HomePage.css';
 
 const CATEGORIES = [
   { id: 'all', label: 'All Tools' },
-  { id: 'youtube', label: 'YouTube' },
   { id: 'pdf', label: 'PDF' },
-  { id: 'image', label: 'Image' },
-  { id: 'convert', label: 'Convert' },
 ];
 
 export default function HomePage() {
@@ -46,9 +43,9 @@ export default function HomePage() {
   return (
     <div className="home-container">
       <SEOHead
-        title="ILoveDocs — #1 Free YouTube & PDF Toolkit Dashboard"
-        description="Premium online tools for creators and professionals. Download YouTube thumbnails, extract tags, merge PDFs, and summarize videos with AI. 100% Free."
-        keywords="youtube SEO, youtube thumbnail downloader, merge pdf free, video summarizer ai, tag extractor"
+        title="ILoveDocs — Free PDF Toolkit | 26+ Browser-Based PDF Tools"
+        description="Free online PDF tools for everyone. Convert, edit, protect, compress, merge and more — 100% free, no signup required, works right in your browser."
+        keywords="pdf tools free, merge pdf, split pdf, compress pdf, pdf to word, word to pdf, protect pdf, ocr pdf, sign pdf"
         canonical="/"
         jsonLd={buildWebsiteJsonLd()}
       />

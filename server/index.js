@@ -17,7 +17,6 @@ const pdfRoutes = require('./routes/pdf');
 const imageRoutes = require('./routes/image');
 const fileRoutes = require('./routes/files');
 const toolsRoutes = require('./routes/tools');
-const youtubeRoutes = require('./routes/youtube');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -76,7 +75,6 @@ app.use('/api/pdf', pdfRoutes);
 app.use('/api/image', imageRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/tools', toolsRoutes);
-app.use('/api/youtube', youtubeRoutes); // YouTube Toolkit
 
 // Health check — must be defined BEFORE static file middleware catch-all
 app.get('/api/health', (req, res) => {

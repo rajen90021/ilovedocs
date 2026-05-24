@@ -3,11 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { 
   Search, 
   Menu, 
-  Zap, 
-  Play, 
   ChevronDown, 
-  X, 
-  User,
+  X,
   CircleUser,
   LogOut, 
   Layout,
@@ -19,7 +16,6 @@ import './Header.css';
 
 export default function Header({ 
   tools = [], // Should be passed from parent or fetched
-  activeTool,
   searchQuery, 
   setSearchQuery 
 }) {
@@ -44,15 +40,24 @@ export default function Header({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Group tools by category
-  const categories = [
-    { id: 'youtube', label: 'YouTube Tools', color: '#EF4444' },
-    { id: 'pdf', label: 'PDF Tools', color: '#E63946' },
-    { id: 'image', label: 'Image Tools', color: '#4ECDC4' },
-    { id: 'convert', label: 'Convert Tools', color: '#3B82F6' },
+  // Group PDF tools into subcategories for a neat dropdown
+  const megaMenuColumns = [
+    { 
+      label: 'Conversions', 
+      color: '#E63946', 
+      tools: tools.filter(t => ['pdf-to-word', 'pdf-to-excel', 'pdf-to-ppt', 'pdf-to-jpg', 'pdf-to-png', 'jpg-to-pdf', 'word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'].includes(t.id)) 
+    },
+    { 
+      label: 'Edit & Enhance', 
+      color: '#4ECDC4', 
+      tools: tools.filter(t => ['edit-pdf', 'watermark-pdf', 'page-numbers-pdf', 'remove-pages-pdf', 'reorder-pdf', 'crop-pdf', 'header-footer-pdf', 'redact-pdf'].includes(t.id)) 
+    },
+    { 
+      label: 'Security & Utility', 
+      color: '#3B82F6', 
+      tools: tools.filter(t => ['protect-pdf', 'unlock-pdf', 'sign-pdf', 'flatten-pdf', 'ocr-pdf', 'repair-pdf', 'pdf-to-text', 'compare-pdf'].includes(t.id)) 
+    }
   ];
-
-  const getToolsByCategory = (catId) => tools.filter(t => t.category === catId);
 
   // Hover handlers for Mega Menu
   const handleMouseEnter = () => {
@@ -83,7 +88,6 @@ export default function Header({
         <Link to="/" className="logo-section" style={{ textDecoration: 'none', outline: 'none' }}>
           <div className="logo">
             <div className="logo-icon-red" style={{ 
-               background: 'var(--brand-primary)', 
                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                width: '40px', height: '40px', 
                borderRadius: '12px', 
@@ -119,11 +123,11 @@ export default function Header({
              {isBrowseOpen && (
                <div className="mega-menu animated-in" ref={dropdownRef}>
                   <div className="mega-menu-grid">
-                     {categories.map(cat => (
-                        <div key={cat.id} className="mega-column">
-                           <div className="mega-title" style={{ color: cat.color }}>{cat.label}</div>
+                     {megaMenuColumns.map((col, idx) => (
+                        <div key={idx} className="mega-column">
+                           <div className="mega-title" style={{ color: col.color }}>{col.label}</div>
                            <div className="mega-tools">
-                              {getToolsByCategory(cat.id).map(tool => {
+                              {col.tools.map(tool => {
                                  const ToolIcon = Icons[toPascalCase(tool.icon)] || Circle;
                                  return (
                                     <button 
@@ -275,12 +279,12 @@ export default function Header({
               </div>
             ) : (
               <>
-                <div className="mobile-label">Categories</div>
-                {categories.map(cat => (
-                  <div key={cat.id} className="mobile-cat-section">
-                    <div className="mobile-cat-header">{cat.label}</div>
+                <div className="mobile-label">PDF Tools</div>
+                {megaMenuColumns.map((col, idx) => (
+                  <div key={idx} className="mobile-cat-section">
+                    <div className="mobile-cat-header" style={{ color: col.color }}>{col.label}</div>
                     <div className="mobile-tools-list">
-                      {getToolsByCategory(cat.id).map(tool => (
+                      {col.tools.map(tool => (
                         <button key={tool.id} className="mobile-tool-link" onClick={() => handleSelectTool(tool.id)}>
                           {tool.name}
                         </button>

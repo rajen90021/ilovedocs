@@ -10,10 +10,7 @@ import './ToolsPage.css';
 
 const CATEGORIES = [
   { id: 'all', label: 'All Tools' },
-  { id: 'youtube', label: 'YouTube' },
   { id: 'pdf', label: 'PDF' },
-  { id: 'image', label: 'Image' },
-  { id: 'convert', label: 'Convert' },
 ];
 
 const TOOLS_JSON_LD = (tools) => [
